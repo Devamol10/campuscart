@@ -53,6 +53,10 @@ function CreatePassword() {
         password: trimmedPassword,
       });
 
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
       setMessage("Password set successfully. Redirecting...");
 
       setTimeout(() => {

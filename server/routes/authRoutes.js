@@ -71,7 +71,7 @@ router.get(
       await user.save();
       setAuthCookies(res, accessToken, refreshTkn);
 
-      return res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
+      return res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${accessToken}`);
     })(req, res, next);
   }
 );
@@ -102,7 +102,7 @@ router.get(
       await user.save();
       setAuthCookies(res, accessToken, refreshTkn);
 
-      return res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
+      return res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${accessToken}`);
     })(req, res, next);
   }
 );

@@ -154,6 +154,7 @@ function Home() {
     } catch {
       // ignore logout errors to keep UX smooth
     } finally {
+      localStorage.removeItem("token");
       setIsAuthenticated(false);
       navigate("/");
     }

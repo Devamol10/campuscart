@@ -42,9 +42,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        await api.post("/api/auth/refresh");
+        const refreshRes = await api.post("/api/auth/refresh");
+        if (refreshRes.data?.token) {
+          localStorage.setItem("token", refreshRes.data.token);
+          originalRequest.headers.Authorization = `Bearer ${refreshRes.data.token}`;
+        }
         return api(originalRequest);
       } catch (refreshError) {
+        localStorage.removeItem("token");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
