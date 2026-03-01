@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import User from "../models/user.js";
+import BlacklistedToken from "../models/BlacklistedToken.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import {
@@ -220,6 +221,17 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   const hashedToken = hashRefreshToken(token);
 
+  // check if the token is blacklisted
+  const isBlacklisted = await BlacklistedToken.findOne({ token: hashedToken });
+  if (isBlacklisted) {
+    // If a blacklisted token is used, it means the token was compromised.
+    // For maximum security, we immediately clear cookies and revoke everywhere.
+    clearAuthCookies(res);
+    return res.status(401).json({
+      message: "Session expired or revoked. Please login again.",
+    });
+  }
+
   const user = await User.findOne({
     refreshToken: hashedToken,
     refreshTokenExpires: { $gt: new Date() },
@@ -254,9 +266,28 @@ export const logout = asyncHandler(async (req, res) => {
 
   if (token) {
     const hashedToken = hashRefreshToken(token);
+
+    // find user to get the token expiry before nullifying it
+    const user = await User.findOne({ refreshToken: hashedToken });
+
+    // add to blacklist so the token cannot be reused
+    if (user && user.refreshTokenExpires) {
+      await BlacklistedToken.create({
+        token: hashedToken,
+        expiresAt: user.refreshTokenExpires,
+      });
+    } else {
+      // safe fallback if user expired/deleted but token cookie still active
+      await BlacklistedToken.create({
+        token: hashedToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      });
+    }
+
+    // nullify in user record
     await User.findOneAndUpdate(
       { refreshToken: hashedToken },
-      { refreshToken: null }
+      { refreshToken: null, refreshTokenExpires: null }
     );
   }
 
