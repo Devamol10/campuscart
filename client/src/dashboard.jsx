@@ -155,7 +155,7 @@ function Dashboard() {
         ) : (
           <div className="dash-url-list">
             {urls.map((url, i) => {
-              const baseUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
+              const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "");
               const fullShortUrl = `${baseUrl}/${url.shortCode}`;
               return (
                 <div

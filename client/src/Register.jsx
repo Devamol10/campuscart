@@ -8,7 +8,7 @@ function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const oauthBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const oauthBase = import.meta.env.VITE_API_URL;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const normalizeEmail = (value) => value.trim().toLowerCase();

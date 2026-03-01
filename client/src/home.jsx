@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 const Confetti = React.lazy(() => import("react-confetti"));
-import { useWindowSize } from "react-use";
+
 import api from "../services/api";
 
 
@@ -16,7 +16,7 @@ function Home() {
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const { width, height } = useWindowSize();
+
 
   const MAX_URL_LENGTH = 2048;
   const navigate = useNavigate();
@@ -186,7 +186,7 @@ function Home() {
         <div className="mesh-orb mesh-orb-3" />
       </div>
 
-      // navbar
+      {/* navbar */}
       <header className="navbar">
         <div className="logo">LinkMint</div>
         <div className="nav-actions">
@@ -213,7 +213,7 @@ function Home() {
       </header>
 
       <main className="shell">
-        // hero
+        {/* hero */}
         <section className="hero">
           <div className="pill">
             <span className="pill-dot" />
@@ -229,7 +229,7 @@ function Home() {
             Built with speed, reliability, and security in mind.
           </p>
 
-          // shortener input
+          {/* shortener input */}
           <form className="shortener-card" onSubmit={handleShorten}>
             <div className="shortener-inner">
               <div className="input-wrap">
@@ -260,10 +260,10 @@ function Home() {
             </div>
           </form>
 
-          // error
+          {/* error */}
           {error && <div className="alert error">{error}</div>}
 
-          // result
+          {/* result */}
           {result && (
             <div className="result-card">
               {showConfetti && (
@@ -299,7 +299,7 @@ function Home() {
 
         </section>
 
-        // features
+        {/* features */}
         <section className="section" style={{ paddingTop: '2rem' }}>
           <div className="section-head">
             <p className="eyebrow">Platform Features</p>
@@ -316,7 +316,7 @@ function Home() {
           </div>
         </section>
 
-        // how it works
+        {/* how it works */}
         <section className="section">
           <div className="section-head">
             <p className="eyebrow">How it works</p>
@@ -334,7 +334,7 @@ function Home() {
           </div>
         </section>
 
-        // CTA
+        {/* CTA */}
         <section className="section cta">
           <div className="cta-inner">
             <div>
@@ -365,13 +365,13 @@ function Home() {
         </section>
       </main>
 
-      // footer
+      {/* footer */}
       <footer className="footer">
         <div className="footer-brand">LinkMint</div>
         <p>&copy; {new Date().getFullYear()} LinkMint. Built for fast sharing.</p>
       </footer>
 
-      // auth limit modal
+      {/* auth limit modal */}
       {showAuthModal && (
         <div className="overlay">
           <div className="modal">
