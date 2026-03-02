@@ -14,11 +14,16 @@ const getTransporter = async () => {
       nodemailer.createTransport({
         host: process.env.MAIL_HOST || "smtp.gmail.com",
         port: Number(process.env.MAIL_PORT || 587),
-        secure: false,
+        secure: false, // true for 465, false for other ports
+        requireTLS: true,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
+        tls: {
+          rejectUnauthorized: true,
+        },
+        family: 4, // force Node.js to use IPv4 instead of IPv6
       })
     );
   } else if (process.env.NODE_ENV === "production") {
@@ -32,6 +37,7 @@ const getTransporter = async () => {
         host: "smtp.ethereal.email",
         port: 587,
         secure: false,
+        requireTLS: true,
         auth: {
           user: testAccount.user,
           pass: testAccount.pass,
