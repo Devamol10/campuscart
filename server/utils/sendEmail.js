@@ -11,9 +11,13 @@ from: process.env.EMAIL_FROM || "LinkMint <onboarding@resend.dev>",      to,
     });
 
     if (error) {
-      console.error("Resend error:", error);
-      throw new Error("Email could not be sent");
-    }
+  console.error("Resend FULL error:", JSON.stringify(error, null, 2));
+  throw error;  
+}
+    // if (error) {
+    //   console.error("Resend error:", error);
+    //   throw new Error("Email could not be sent");
+    // }
 
     console.log("Email sent successfully:", data?.id);
   } catch (error) {
