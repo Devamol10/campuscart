@@ -1,6 +1,8 @@
 import axios from "axios"; //axios used 
 
+
 export const sendEmail = async ({ to, subject, html }) => {
+  
   try {
     console.log("email from",process.env.EMAIL_FROM);
     console.log("api key",process.env.BrevoApiKey); 

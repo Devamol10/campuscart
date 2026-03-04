@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../services/api.js";
 
 function Register() {
+  
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");

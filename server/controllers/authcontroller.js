@@ -34,24 +34,34 @@ export const requestVerification = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid email format" });
   }
 
+  const existingUser = await User.findOne({ email:normalizedEmail });
+
+  if (existingUser && existingUser.isVerified) {
+    return res.status(409).json({
+      message: "Account already exists. Please login."
+    });
+  }
+
+
   const rawToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
 
   const tokenExpiry = new Date(Date.now() + 7 * 60 * 1000);
 
-  let user = await User.findOne({ email: normalizedEmail });
+  let user = existingUser;
 
-  if (!user) {
-    user = await User.create({
-      email: normalizedEmail,
-      verificationToken: hashedToken,
-      verificationTokenExpires: tokenExpiry,
-    });
-  } else {
-    user.verificationToken = hashedToken;
-    user.verificationTokenExpires = tokenExpiry;
-    await user.save();
-  }
+if (!existingUser) {
+  user = await User.create({
+    email: normalizedEmail,
+    verificationToken: hashedToken,
+    verificationTokenExpires: tokenExpiry,
+  });
+} else {
+  user = existingUser;
+  user.verificationToken = hashedToken;
+  user.verificationTokenExpires = tokenExpiry;
+  await user.save();
+}
 
   const baseUrl = process.env.BASE_URL || "http://localhost:5000";
   const verificationUrl = `${baseUrl}/api/auth/verify/${rawToken}`;
@@ -60,11 +70,33 @@ export const requestVerification = asyncHandler(async (req, res) => {
     to: normalizedEmail,
     subject: "Verify Your Email",
     html: `
-      <h2>Email Verification</h2>
-      <p>Click below to verify your email:</p>
-      <a href="${verificationUrl}">${verificationUrl}</a>
-      <p>This link expires in 7 minutes.</p>
-    `,
+  <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px;">
+    <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center;">
+      
+      <h2 style="color: #333; margin-bottom: 10px;">Email Verification</h2>
+      
+      <p style="color: #555; font-size: 14px; margin-bottom: 25px;">
+        Please click the button below to verify your email address.
+      </p>
+
+      <a href="${verificationUrl}" 
+         style="display: inline-block; padding: 12px 25px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+        Verify Email
+      </a>
+
+      <p style="color: #888; font-size: 12px; margin-top: 25px;">
+        This link expires in 7 minutes.
+      </p>
+
+      <hr style="margin: 25px 0; border: none; border-top: 1px solid #eee;" />
+
+      <p style="color: #aaa; font-size: 11px;">
+        If you did not request this, you can safely ignore this email.
+      </p>
+
+    </div>
+  </div>
+`,
   });
 
   res.status(200).json({
