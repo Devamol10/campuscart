@@ -16,8 +16,13 @@ function Home() {
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showDashboardMsg, setShowDashboardMsg] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
 
 
+
+  const username = email?.split("@")[0];
+  const firstLetter = email?.charAt(0).toUpperCase();
 
   const MAX_URL_LENGTH = 2048;
   const navigate = useNavigate();
@@ -153,7 +158,7 @@ function Home() {
     try {
       await api.post("/api/auth/logout");
     } catch {
-      // ignore logout errors to keep UX smooth
+
     } finally {
       localStorage.removeItem("token");
       setIsAuthenticated(false);
@@ -173,8 +178,9 @@ function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await api.get("/api/auth/me", { skipAuthRefresh: true });
+        const res = await api.get("/api/auth/me", { skipAuthRefresh: true });
         setIsAuthenticated(true);
+        setEmail(res.data.email);
       } catch {
         setIsAuthenticated(false);
       } finally {
@@ -228,16 +234,41 @@ function Home() {
               </div>
             )}
           </div>
-          {isAuthenticated ? (
-            <button className="btn solid" onClick={handleLogout}>
-              Logout
-            </button>
-          ) : (
-            <Link className="link-reset" to="/login">
-              <button className="btn solid">Login</button>
-            </Link>
-          )}
+
+          <div style={{ position: "relative" }}>
+
+            {!isAuthenticated ? (
+              <Link className="link-reset" to="/login">
+                <button className="btn solid">Login</button>
+              </Link>
+            ) : (
+              <>
+
+                <div
+                  className="avatar-circle"
+                  onClick={() => setOpen(!open)}
+                >
+                  A {firstLetter}
+                </div>
+
+                {/* Dropdown */}
+                {open && (
+                  <div className="avatar-dropdown">
+                    <p>{username}</p>
+                    <p style={{ fontSize: "12px", color: "#666" }}>abc{email}</p>
+                    <button
+                      className="logout-btn"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
+
       </header>
 
       <main className="shell">
