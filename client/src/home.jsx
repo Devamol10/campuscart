@@ -257,7 +257,7 @@ function Home() {
                     <p>{username}</p>
                     <p style={{ fontSize: "12px", color: "#666" }}>abc{email}</p>
                     <button
-                      className="logout-btn"
+                      className="btn solid"
                       onClick={handleLogout}
                     >
                       Logout
@@ -441,7 +441,7 @@ function Home() {
                 <button className="btn solid">Log in</button>
               </Link>
               <Link to="/register">
-                <button className="btn ghost">Register</button>
+                <button className="btn solid">Register</button>
               </Link>
             </div>
             <button className="close-btn" onClick={() => setShowAuthModal(false)}>

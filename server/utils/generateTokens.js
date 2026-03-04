@@ -13,7 +13,7 @@ const getAccessSecret = () => {
   return secret;
 };
 
-const ACCESS_TOKEN_EXPIRY = "15m";
+const ACCESS_TOKEN_EXPIRY = "7d";
 
 // access token (JWT)
 export const generateAccessToken = (userId) => {
