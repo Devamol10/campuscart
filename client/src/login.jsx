@@ -46,10 +46,6 @@ function Login() {
         password: trimmedPassword,
       });
 
-      if (res.data?.token) {
-        localStorage.setItem("token", res.data.token);
-      }
-
       setEmail(normalizedEmail);
       navigate("/");
     } catch (err) {

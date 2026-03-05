@@ -76,7 +76,6 @@ export const createShortUrl = asyncHandler(async (req, res) => {
     }
   }
 
-  // dedup for logged-in users
   if (userId) {
     const existing = await Url.findOne({
       originalUrl: normalizedUrl,

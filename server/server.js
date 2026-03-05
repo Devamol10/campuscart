@@ -71,6 +71,15 @@ connectDB();
 
 const mongoUri = process.env.MONGO_URI;
 
+// health check — placed BEFORE rate limiters so monitoring pings are never throttled
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // security middleware
 app.use(helmet());
 
@@ -133,7 +142,8 @@ const authLimiter = rateLimit({
 // routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", urlRoutes);
-app.get("/api/health", (req, res) => res.status(200).json({ status: "ok" }));
+// legacy alias kept for backwards compatibility
+app.get("/api/health", (req, res) => res.redirect(301, "/health"));
 app.get("/:shortCode", redirectUrl);
 
 // error handler

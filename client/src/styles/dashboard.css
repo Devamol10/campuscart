@@ -12,6 +12,7 @@
     padding: var(--space-4) var(--space-6);
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -68,6 +69,7 @@
 
 .dash-stat-card:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .dash-stat-label {
@@ -169,8 +171,7 @@
 
 .dash-url-card:hover {
     box-shadow: var(--shadow-md);
-    border-color: #d1d5db;
-    /* Slightly darker border on hover */
+    border-color: var(--color-primary);
 }
 
 .dash-card-header {
@@ -208,7 +209,6 @@
     gap: var(--space-2);
 }
 
-/* Re-using base styles with specific classes */
 .dash-btn {
     display: inline-flex;
     align-items: center;

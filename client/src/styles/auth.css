@@ -11,7 +11,6 @@
     overflow: hidden;
 }
 
-/* Optional subtle background pattern for auth pages */
 .login-container::before {
     content: '';
     position: absolute;
@@ -32,6 +31,7 @@
     max-width: 440px;
     padding: var(--space-8);
     border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
     position: relative;
     z-index: 1;
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -52,7 +52,6 @@
 }
 
 .login-input {
-    /* Inherits global input styles from components.css, but we can add specific tweaks if needed */
     background-color: var(--color-bg);
 }
 
@@ -150,13 +149,16 @@
 .oauth-button:hover {
     background-color: var(--color-surface-hover);
     border-color: var(--color-text-muted);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
 }
 
-/* Optional: Add icons via pseudo-elements or just keep it text for now since JSX doesn't have SVG icons for them */
 
 .login-footer {
     text-align: center;
     margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
     font-size: 0.875rem;
     color: var(--color-text-muted);
 }
@@ -169,5 +171,17 @@
 @media (max-width: 480px) {
     .login-box {
         padding: var(--space-6);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

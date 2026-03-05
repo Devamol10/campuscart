@@ -7,19 +7,6 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Attach token to every request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
-// auto-refresh on 401
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -29,27 +16,21 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (originalRequest.skipAuthRefresh) {
+    if (
+      originalRequest.skipAuthRefresh ||
+      originalRequest.url?.includes("/api/auth/login") ||
+      originalRequest.url?.includes("/api/auth/refresh")
+    ) {
       return Promise.reject(error);
     }
 
-    if (
-      error.response.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.url.includes("/auth/login") &&
-      !originalRequest.url.includes("/api/auth/refresh")
-    ) {
+    if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshRes = await api.post("/api/auth/refresh");
-        if (refreshRes.data?.token) {
-          localStorage.setItem("token", refreshRes.data.token);
-          originalRequest.headers.Authorization = `Bearer ${refreshRes.data.token}`;
-        }
+        await api.post("/api/auth/refresh", {}, { skipAuthRefresh: true });
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("token");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }

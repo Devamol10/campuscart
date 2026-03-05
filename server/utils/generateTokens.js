@@ -13,7 +13,7 @@ const getAccessSecret = () => {
   return secret;
 };
 
-const ACCESS_TOKEN_EXPIRY = "7d";
+const ACCESS_TOKEN_EXPIRY = "15m";
 
 // access token (JWT)
 export const generateAccessToken = (userId) => {
@@ -28,12 +28,10 @@ export const generateAccessToken = (userId) => {
   );
 };
 
-// refresh token (random string)
 export const generateRefreshToken = () => {
   return crypto.randomBytes(40).toString("hex");
 };
 
-// hash refresh token
 export const hashRefreshToken = (token) => {
   if (!token) {
     throw new Error("Refresh token is required for hashing.");

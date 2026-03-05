@@ -35,7 +35,6 @@
     left: -200px;
 }
 
-/* hero section */
 .hero {
     padding: var(--space-16) 0 var(--space-4);
     text-align: center;
@@ -51,6 +50,7 @@
 .hero h1 {
     margin-bottom: var(--space-4);
     color: var(--color-text);
+    letter-spacing: -0.03em;
 }
 
 .accent-word {
@@ -65,7 +65,6 @@
     color: var(--color-text-muted);
 }
 
-/* shortener form */
 .shortener-card {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -195,6 +194,7 @@
 .step-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-light);
 }
 
 .feature-icon,

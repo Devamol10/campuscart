@@ -53,10 +53,6 @@ function CreatePassword() {
         password: trimmedPassword,
       });
 
-      if (res.data?.token) {
-        localStorage.setItem("token", res.data.token);
-      }
-
       setMessage("Password set successfully. Redirecting...");
 
       setTimeout(() => {
@@ -138,6 +134,13 @@ function ProtectedRoute({ children }) {
 // main app routes
 
 function App() {
+  useEffect(() => {
+    api
+      .post("/api/auth/refresh", {}, { skipAuthRefresh: true })
+      .catch(() => {
+      });
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />

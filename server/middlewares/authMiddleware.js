@@ -27,7 +27,6 @@ export const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-// optional auth
 export const optionalProtect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const bearerToken = authHeader?.startsWith("Bearer ")

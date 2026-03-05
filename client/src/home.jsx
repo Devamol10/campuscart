@@ -158,9 +158,7 @@ function Home() {
     try {
       await api.post("/api/auth/logout");
     } catch {
-
     } finally {
-      localStorage.removeItem("token");
       setIsAuthenticated(false);
       navigate("/");
     }
@@ -248,16 +246,18 @@ function Home() {
                   className="avatar-circle"
                   onClick={() => setOpen(!open)}
                 >
-                  A {firstLetter}
+                  {firstLetter}
                 </div>
 
                 {/* Dropdown */}
                 {open && (
                   <div className="avatar-dropdown">
-                    <p>{username}</p>
-                    <p style={{ fontSize: "12px", color: "#666" }}>abc{email}</p>
+                    <div className="avatar-user-info">
+                      <p className="avatar-username">{username}</p>
+                      <p className="avatar-email">{email}</p>
+                    </div>
                     <button
-                      className="btn solid"
+                      className="logout-btn-custom"
                       onClick={handleLogout}
                     >
                       Logout
