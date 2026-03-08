@@ -7,8 +7,6 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import session from "express-session";
-import MongoStore from "connect-mongo";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -24,7 +22,7 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 const isProd = process.env.NODE_ENV === "production";
 
 // env validation
-const requiredAlways = ["MONGO_URI", "SESSION_SECRET", "ACCESS_TOKEN_SECRET"];
+const requiredAlways = ["MONGO_URI", "ACCESS_TOKEN_SECRET"];
 
 const requiredProd = [
   "CLIENT_URL",
@@ -35,6 +33,8 @@ const requiredProd = [
   "GITHUB_CLIENT_SECRET",
   "EMAIL_USER",
   "EMAIL_PASS",
+  "BrevoApiKey",   // required for email verification
+  "EMAIL_FROM",    // required for email sender identity
 ];
 
 const missingAlways = requiredAlways.filter((key) => !process.env[key]);
@@ -52,9 +52,6 @@ if (isProd) {
     );
   }
 
-  if (process.env.SESSION_SECRET.length < 64) {
-    throw new Error("SESSION_SECRET must be at least 64 characters in production");
-  }
   if (process.env.ACCESS_TOKEN_SECRET.length < 64) {
     throw new Error("ACCESS_TOKEN_SECRET must be at least 64 characters in production");
   }
@@ -69,7 +66,6 @@ if (isProd) {
 
 connectDB();
 
-const mongoUri = process.env.MONGO_URI;
 
 // health check — placed BEFORE rate limiters so monitoring pings are never throttled
 app.get("/health", (req, res) => {
@@ -91,13 +87,19 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://url-shortener-lovat-gamma.vercel.app"
-  ],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin '${origin}' not allowed`));
+    }
+  },
   credentials: true,
 };
 
@@ -105,30 +107,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: mongoUri
-      ? MongoStore.create({
-        mongoUrl: mongoUri,
-        ttl: 10 * 60,
-      })
-      : undefined,
-    cookie: {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      maxAge: 10 * 60 * 1000,
-    },
-    name: "sid",
-  })
-);
-console.log("NODE_ENV is:", process.env.NODE_ENV);
-
 app.use(passport.initialize());
 app.use(morgan(isProd ? "combined" : "dev"));
+
 
 // auth rate limiter
 const authLimiter = rateLimit({
@@ -142,15 +123,17 @@ const authLimiter = rateLimit({
 // routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", urlRoutes);
-// legacy alias kept for backwards compatibility
+// legacy health alias
 app.get("/api/health", (req, res) => res.redirect(301, "/health"));
+// catch unmatched /api/* paths before the short-code wildcard
+app.use("/api", (req, res) =>
+  res.status(404).json({ message: "API route not found" })
+);
 app.get("/:shortCode", redirectUrl);
 
 // error handler
 app.use(errorHandler);
 
-// server start
-// server start
 const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== "test") {

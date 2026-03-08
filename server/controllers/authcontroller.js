@@ -11,6 +11,9 @@ import {
 } from "../utils/generateTokens.js";
 import { setAuthCookies, clearAuthCookies } from "../utils/cookieHelpers.js";
 
+const clientUrl = () =>
+  (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/+$/, "");
+
 // helpers
 const normalizeEmail = (value = "") =>
   typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -34,7 +37,7 @@ export const requestVerification = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid email format" });
   }
 
-  const existingUser = await User.findOne({ email:normalizedEmail });
+  const existingUser = await User.findOne({ email: normalizedEmail });
 
   if (existingUser && existingUser.isVerified) {
     return res.status(409).json({
@@ -50,18 +53,18 @@ export const requestVerification = asyncHandler(async (req, res) => {
 
   let user = existingUser;
 
-if (!existingUser) {
-  user = await User.create({
-    email: normalizedEmail,
-    verificationToken: hashedToken,
-    verificationTokenExpires: tokenExpiry,
-  });
-} else {
-  user = existingUser;
-  user.verificationToken = hashedToken;
-  user.verificationTokenExpires = tokenExpiry;
-  await user.save();
-}
+  if (!existingUser) {
+    user = await User.create({
+      email: normalizedEmail,
+      verificationToken: hashedToken,
+      verificationTokenExpires: tokenExpiry,
+    });
+  } else {
+    user = existingUser;
+    user.verificationToken = hashedToken;
+    user.verificationTokenExpires = tokenExpiry;
+    await user.save();
+  }
 
   const baseUrl = process.env.BASE_URL || "http://localhost:5000";
   const verificationUrl = `${baseUrl}/api/auth/verify/${rawToken}`;
@@ -109,7 +112,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   const { token } = req.params;
 
   if (!token) {
-    return res.redirect(`${process.env.CLIENT_URL}/verification-failed`);
+    return res.redirect(`${clientUrl()}/verification-failed`);
   }
 
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
@@ -120,14 +123,14 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    return res.redirect(`${process.env.CLIENT_URL}/verification-failed`);
+    return res.redirect(`${clientUrl()}/verification-failed`);
   }
 
   user.isVerified = true;
   await user.save();
 
   return res.redirect(
-    `${process.env.CLIENT_URL}/create-password?token=${token}`
+    `${clientUrl()}/create-password?token=${token}`
   );
 });
 
@@ -264,7 +267,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
   const user = await User.findOne({
     refreshToken: hashedToken,
     refreshTokenExpires: { $gt: new Date() },
-  });
+  }).select("+refreshToken +refreshTokenExpires");
 
   if (!user) {
     clearAuthCookies(res);
@@ -296,7 +299,8 @@ export const logout = asyncHandler(async (req, res) => {
   if (token) {
     const hashedToken = hashRefreshToken(token);
 
-    const user = await User.findOne({ refreshToken: hashedToken });
+    const user = await User.findOne({ refreshToken: hashedToken })
+      .select("+refreshToken +refreshTokenExpires");
 
     // add to blacklist so the token cannot be reused
     if (user && user.refreshTokenExpires) {

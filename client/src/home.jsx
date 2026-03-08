@@ -156,10 +156,10 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      await api.post("/api/auth/logout"); 
+      await api.post("/api/auth/logout");
     } catch {
     } finally {
-      sessionStorage.removeItem("token");
+      localStorage.removeItem("token");
       setIsAuthenticated(false);
       navigate("/");
     }
@@ -177,7 +177,9 @@ function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await api.get("/api/auth/me", { skipAuthRefresh: true });
+        // No _skipRefresh here — allow the interceptor to silently refresh
+        // an expired access token using the refresh token cookie before giving up.
+        const res = await api.get("/api/auth/me");
         setIsAuthenticated(true);
         setEmail(res.data.email);
       } catch {

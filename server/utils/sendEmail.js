@@ -2,10 +2,9 @@ import axios from "axios"; //axios used
 
 
 export const sendEmail = async ({ to, subject, html }) => {
-  
+
   try {
-    console.log("email from",process.env.EMAIL_FROM);
-    console.log("api key",process.env.BrevoApiKey); 
+
     const response = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
@@ -34,10 +33,10 @@ export const sendEmail = async ({ to, subject, html }) => {
     throw error;
   }
 };
-    // if (error) {
-    //   console.error("Resend error:", error);
-    //   throw new Error("Email could not be sent");
-    // }
+// if (error) {
+//   console.error("Resend error:", error);
+//   throw new Error("Email could not be sent");
+// }
 
 //     console.log("Email sent successfully:", data?.id);
 //   } catch (error) {

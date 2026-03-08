@@ -134,12 +134,26 @@ function ProtectedRoute({ children }) {
 // main app routes
 
 function App() {
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
     api
-      .post("/api/auth/refresh", {}, { skipAuthRefresh: true })
+      .post("/api/auth/refresh", {}, { _skipRefresh: true })
+      .then((res) => {
+        const newToken = res.data?.token;
+        if (newToken) {
+          localStorage.setItem("token", newToken);
+        }
+      })
       .catch(() => {
+        localStorage.removeItem("token");
+      })
+      .finally(() => {
+        setReady(true);
       });
   }, []);
+
+  if (!ready) return null;
 
   return (
     <Routes>

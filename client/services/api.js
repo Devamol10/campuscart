@@ -7,9 +7,9 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Attach token from sessionStorage (set during OAuth callback for cross-domain browsers)
+// Attach token from localStorage for persistent cross-domain auth
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
@@ -26,30 +26,29 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (
-      originalRequest.skipAuthRefresh ||
-      originalRequest.url?.includes("/api/auth/login") ||
-      originalRequest.url?.includes("/api/auth/refresh")
-    ) {
+    // Skip refresh if already retried or explicitly flagged
+    if (originalRequest._retry || originalRequest._skipRefresh) {
       return Promise.reject(error);
     }
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response.status === 401) {
       originalRequest._retry = true;
 
       try {
-        const refreshRes = await api.post("/api/auth/refresh", {}, { skipAuthRefresh: true });
+        const refreshRes = await api.post("/api/auth/refresh", {}, {
+          _skipRefresh: true,
+        });
 
         const newToken = refreshRes.data?.token;
         if (newToken) {
-          sessionStorage.setItem("token", newToken);
+          localStorage.setItem("token", newToken);
           originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
         }
 
         return api(originalRequest);
       } catch (refreshError) {
-        sessionStorage.removeItem("token");
+        localStorage.removeItem("token");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }

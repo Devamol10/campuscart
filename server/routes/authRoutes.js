@@ -18,6 +18,9 @@ import {
 } from "../controllers/authcontroller.js";
 import User from "../models/user.js";
 
+const clientUrl = () =>
+  (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/+$/, "");
+
 const router = express.Router();
 
 // rate limiters
@@ -61,7 +64,7 @@ router.get(
   (req, res, next) => {
     passport.authenticate("google", { session: false }, async (err, user) => {
       if (err || !user) {
-        return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+        return res.redirect(`${clientUrl()}/login?error=oauth_failed`);
       }
 
       const accessToken = generateToken(user._id);
@@ -71,7 +74,7 @@ router.get(
       await user.save();
       setAuthCookies(res, accessToken, refreshTkn);
 
-      return res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${accessToken}`);
+      return res.redirect(`${clientUrl()}/auth/callback?token=${accessToken}`);
     })(req, res, next);
   }
 );
@@ -92,7 +95,7 @@ router.get(
   (req, res, next) => {
     passport.authenticate("github", { session: false }, async (err, user) => {
       if (err || !user) {
-        return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+        return res.redirect(`${clientUrl()}/login?error=oauth_failed`);
       }
 
       const accessToken = generateToken(user._id);
@@ -102,7 +105,7 @@ router.get(
       await user.save();
       setAuthCookies(res, accessToken, refreshTkn);
 
-      return res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${accessToken}`);
+      return res.redirect(`${clientUrl()}/auth/callback?token=${accessToken}`);
     })(req, res, next);
   }
 );
