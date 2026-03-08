@@ -50,32 +50,28 @@ export const createShortUrl = asyncHandler(async (req, res) => {
     });
   }
 
+  const ip = req.ip || req.connection.remoteAddress || "unknown_ip";
   const userId = req.userId;
-  const ip = req.ip;
 
-  // guest rate limit (2 free links per 24h)
+  // Guest rate limit (strict 2 requests per 24 hours, same or different links)
   if (!userId) {
-    const hashedIp = crypto
-      .createHash("sha256")
-      .update(ip)
-      .digest("hex");
-
+    const hashedIp = crypto.createHash("sha256").update(ip).digest("hex");
     const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const count = await Url.countDocuments({
+    const guestUsageCount = await Url.countDocuments({
       ipAddress: hashedIp,
       createdAt: { $gte: last24Hours },
     });
 
-    if (count >= 2) {
+    if (guestUsageCount >= 2) {
       return res.status(403).json({
         limitReached: true,
-        message:
-          "You've used your 2 free links in the last 24 hours. Please sign in to continue.",
+        message: "You've used your 2 free links in the last 24 hours. Please sign in to continue.",
       });
     }
   }
 
+  // If logged in, return existing link if already created
   if (userId) {
     const existing = await Url.findOne({
       originalUrl: normalizedUrl,
