@@ -10,6 +10,7 @@ import {
   hashRefreshToken,
 } from "../utils/generateTokens.js";
 import { setAuthCookies, clearAuthCookies } from "../utils/cookieHelpers.js";
+import RefreshToken from "../models/RefreshToken.js";
 
 const clientUrl = () =>
   (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/+$/, "");
@@ -176,8 +177,12 @@ export const setPassword = asyncHandler(async (req, res) => {
   const refreshToken = generateRefreshToken();
   const hashedRefreshToken = hashRefreshToken(refreshToken);
 
-  user.refreshToken = hashedRefreshToken;
-  user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await RefreshToken.deleteMany({ user: user._id });
+  await RefreshToken.create({
+  user: user._id,
+  token: hashedRefreshToken,
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+});
   await user.save();
 
   setAuthCookies(res, accessToken, refreshToken);
@@ -232,9 +237,12 @@ export const login = asyncHandler(async (req, res) => {
   const refreshToken = generateRefreshToken();
   const hashedRefreshToken = hashRefreshToken(refreshToken);
 
-  user.refreshToken = hashedRefreshToken;
-  user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  await user.save();
+  await RefreshToken.deleteMany({ user: user._id });
+  await RefreshToken.create({
+  user: user._id,
+  token: hashedRefreshToken,
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+});
 
   setAuthCookies(res, accessToken, refreshToken);
 
@@ -263,27 +271,32 @@ export const refreshToken = asyncHandler(async (req, res) => {
       message: "Session expired or revoked. Please login again.",
     });
   }
+const storedToken = await RefreshToken.findOne({
+  token: hashedToken,
+  expiresAt: {
+  $gt: new Date()},
+}).populate("user");
 
-  const user = await User.findOne({
-    refreshToken: hashedToken,
-    refreshTokenExpires: { $gt: new Date() },
-  }).select("+refreshToken +refreshTokenExpires");
+if (!storedToken) {
+  clearAuthCookies(res);
+  return res.status(403).json({
+    message: "Invalid or expired refresh token. Please login again.",
+  });
+}
 
-  if (!user) {
-    clearAuthCookies(res);
-    return res.status(403).json({
-      message: "Invalid or expired refresh token. Please login again.",
-    });
-  }
+const user = storedToken.user;
+  
 
   const newAccessToken = generateAccessToken(user._id);
   const newRefreshToken = generateRefreshToken();
   const newHashedRefreshToken = hashRefreshToken(newRefreshToken);
 
-  user.refreshToken = newHashedRefreshToken;
-  user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  await user.save();
-
+  await RefreshToken.deleteMany({ user: user._id });
+  await RefreshToken.create({
+  user: user._id,
+  token: newHashedRefreshToken,
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+});
   setAuthCookies(res, newAccessToken, newRefreshToken);
 
   res.status(200).json({
@@ -295,31 +308,16 @@ export const refreshToken = asyncHandler(async (req, res) => {
 // logout
 export const logout = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken;
+if (token) {
+  const hashedToken = hashRefreshToken(token);
+  await RefreshToken.deleteOne({ token: hashedToken });
 
-  if (token) {
-    const hashedToken = hashRefreshToken(token);
 
-    const user = await User.findOne({ refreshToken: hashedToken })
-      .select("+refreshToken +refreshTokenExpires");
-
-    // add to blacklist so the token cannot be reused
-    if (user && user.refreshTokenExpires) {
-      await BlacklistedToken.create({
-        token: hashedToken,
-        expiresAt: user.refreshTokenExpires,
-      });
-    } else {
-      await BlacklistedToken.create({
-        token: hashedToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      });
-    }
-
-    await User.findOneAndUpdate(
-      { refreshToken: hashedToken },
-      { refreshToken: null, refreshTokenExpires: null }
-    );
-  }
+  await BlacklistedToken.create({
+    token: hashedToken,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+} 
 
   clearAuthCookies(res);
 

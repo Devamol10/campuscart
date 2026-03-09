@@ -1,5 +1,7 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import RefreshToken from "../models/RefreshToken.js";
+
 import passport from "../config/passport.js";
 import {
   generateAccessToken as generateToken,
@@ -69,9 +71,15 @@ router.get(
 
       const accessToken = generateToken(user._id);
       const refreshTkn = generateRefreshToken();
-      user.refreshToken = hashRefreshToken(refreshTkn);
-      user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      await user.save();
+      const hashedRefreshToken = hashRefreshToken(refreshTkn);
+
+      await RefreshToken.deleteMany({ user: user._id });
+
+      await RefreshToken.create({
+      user: user._id,
+      token: hashedRefreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+});
       setAuthCookies(res, accessToken, refreshTkn);
 
       return res.redirect(`${clientUrl()}/auth/callback?token=${accessToken}`);
@@ -100,9 +108,16 @@ router.get(
 
       const accessToken = generateToken(user._id);
       const refreshTkn = generateRefreshToken();
-      user.refreshToken = hashRefreshToken(refreshTkn);
-      user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      await user.save();
+      const hashedRefreshToken = hashRefreshToken(refreshTkn);
+
+      await RefreshToken.deleteMany({ user: user._id });
+
+      await RefreshToken.create({
+  user: user._id,
+  token: hashedRefreshToken,
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+});
+
       setAuthCookies(res, accessToken, refreshTkn);
 
       return res.redirect(`${clientUrl()}/auth/callback?token=${accessToken}`);

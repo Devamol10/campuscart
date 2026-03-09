@@ -7,7 +7,8 @@ function getCookieOptions() {
         httpOnly: true,
         secure: isProd,
         sameSite: isProd ? "none" : "lax",
-        path: "/",          // scope cookies app-wide, not just to the issuing path
+         maxAge: REFRESH_TOKEN_MAX_AGE,
+        path: "/",          
     };
 }
 
