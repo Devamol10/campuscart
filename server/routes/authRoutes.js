@@ -73,13 +73,13 @@ router.get(
       const refreshTkn = generateRefreshToken();
       const hashedRefreshToken = hashRefreshToken(refreshTkn);
 
-      await RefreshToken.deleteMany({ user: user._id });
-
       await RefreshToken.create({
-      user: user._id,
-      token: hashedRefreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-});
+        user: user._id,
+        token: hashedRefreshToken,
+        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
       setAuthCookies(res, accessToken, refreshTkn);
 
       return res.redirect(`${clientUrl()}/auth/callback?token=${accessToken}`);
@@ -110,13 +110,13 @@ router.get(
       const refreshTkn = generateRefreshToken();
       const hashedRefreshToken = hashRefreshToken(refreshTkn);
 
-      await RefreshToken.deleteMany({ user: user._id });
-
       await RefreshToken.create({
-  user: user._id,
-  token: hashedRefreshToken,
-  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-});
+        user: user._id,
+        token: hashedRefreshToken,
+        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
 
       setAuthCookies(res, accessToken, refreshTkn);
 

@@ -11,10 +11,13 @@ const refreshTokenSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  userAgent: String,
+  ipAddress: String,
+  replacedBy: String, // Store hash of the new token for grace window
   expiresAt: {
-   type: Date,
-  required: true,
-  index: { expires: 0 }
+    type: Date,
+    required: true,
+    index: { expires: 0 }
   },
 }, { timestamps: true });
 

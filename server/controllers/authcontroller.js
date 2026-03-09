@@ -177,12 +177,14 @@ export const setPassword = asyncHandler(async (req, res) => {
   const refreshToken = generateRefreshToken();
   const hashedRefreshToken = hashRefreshToken(refreshToken);
 
-  await RefreshToken.deleteMany({ user: user._id });
+  // Create new session without deleting others (Multi-device support)
   await RefreshToken.create({
-  user: user._id,
-  token: hashedRefreshToken,
-  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-});
+    user: user._id,
+    token: hashedRefreshToken,
+    userAgent: req.headers["user-agent"],
+    ipAddress: req.ip,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
   await user.save();
 
   setAuthCookies(res, accessToken, refreshToken);
@@ -237,12 +239,14 @@ export const login = asyncHandler(async (req, res) => {
   const refreshToken = generateRefreshToken();
   const hashedRefreshToken = hashRefreshToken(refreshToken);
 
-  await RefreshToken.deleteMany({ user: user._id });
+  // Atomic session creation
   await RefreshToken.create({
-  user: user._id,
-  token: hashedRefreshToken,
-  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-});
+    user: user._id,
+    token: hashedRefreshToken,
+    userAgent: req.headers["user-agent"],
+    ipAddress: req.ip,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
 
   setAuthCookies(res, accessToken, refreshToken);
 
@@ -264,39 +268,51 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   const hashedToken = hashRefreshToken(token);
 
-  const isBlacklisted = await BlacklistedToken.findOne({ token: hashedToken });
-  if (isBlacklisted) {
+  // Find the token
+  let storedToken = await RefreshToken.findOne({
+    token: hashedToken,
+  }).populate("user");
+
+  // 1. GRACE WINDOW LOGIC: If token was recently replaced (within 30s), treat as success
+  if (storedToken && storedToken.replacedBy) {
+    const timeSinceRotation = Date.now() - new Date(storedToken.updatedAt).getTime();
+    if (timeSinceRotation < 30000) { // 30 seconds grace
+      const user = storedToken.user;
+      const newAccessToken = generateAccessToken(user._id);
+      // We don't issue a new refresh token here to avoid chain-reaction
+      // The client should already have the new refresh token from the first request
+      return res.status(200).json({
+        message: "Access token refreshed (grace window)",
+        token: newAccessToken,
+      });
+    }
+  }
+
+  // 2. VALIDATION: Must exist, not be replaced, and not be expired
+  if (!storedToken || storedToken.replacedBy || storedToken.expiresAt < new Date()) {
     clearAuthCookies(res);
-    return res.status(401).json({
-      message: "Session expired or revoked. Please login again.",
+    return res.status(403).json({
+      message: "Invalid or expired refresh token. Please login again.",
     });
   }
-const storedToken = await RefreshToken.findOne({
-  token: hashedToken,
-  expiresAt: {
-  $gt: new Date()},
-}).populate("user");
 
-if (!storedToken) {
-  clearAuthCookies(res);
-  return res.status(403).json({
-    message: "Invalid or expired refresh token. Please login again.",
-  });
-}
-
-const user = storedToken.user;
-  
-
+  const user = storedToken.user;
   const newAccessToken = generateAccessToken(user._id);
   const newRefreshToken = generateRefreshToken();
   const newHashedRefreshToken = hashRefreshToken(newRefreshToken);
 
-  await RefreshToken.deleteMany({ user: user._id });
+  // 3. ATOMIC ROTATION: Mark old as replaced, create new
+  storedToken.replacedBy = newHashedRefreshToken;
+  await storedToken.save();
+
   await RefreshToken.create({
-  user: user._id,
-  token: newHashedRefreshToken,
-  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-});
+    user: user._id,
+    token: newHashedRefreshToken,
+    userAgent: req.headers["user-agent"],
+    ipAddress: req.ip,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+
   setAuthCookies(res, newAccessToken, newRefreshToken);
 
   res.status(200).json({
@@ -308,16 +324,16 @@ const user = storedToken.user;
 // logout
 export const logout = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken;
-if (token) {
-  const hashedToken = hashRefreshToken(token);
-  await RefreshToken.deleteOne({ token: hashedToken });
+  if (token) {
+    const hashedToken = hashRefreshToken(token);
+    await RefreshToken.deleteOne({ token: hashedToken });
 
 
-  await BlacklistedToken.create({
-    token: hashedToken,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  });
-} 
+    await BlacklistedToken.create({
+      token: hashedToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+  }
 
   clearAuthCookies(res);
 
