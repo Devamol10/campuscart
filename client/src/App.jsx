@@ -163,20 +163,21 @@ function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    api
-      .post("/api/auth/refresh", {}, { _skipRefresh: true })
-      .then((res) => {
+    const restoreSession = async () => {
+      try {
+        const res = await api.post("/api/auth/refresh", {}, { _skipRefresh: true });
         const newToken = res.data?.token;
         if (newToken) {
           localStorage.setItem("token", newToken);
         }
-      })
-      .catch(() => {
+      } catch (err) {
         localStorage.removeItem("token");
-      })
-      .finally(() => {
+      } finally {
         setReady(true);
-      });
+      }
+    };
+
+    restoreSession();
   }, []);
 
   if (!ready) return null;
