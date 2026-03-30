@@ -4,12 +4,11 @@ import axios from "axios";
 // In production (built), use VITE_API_URL directly.
 const isDev = import.meta.env.MODE === 'development';
 const VITE_API_URL = import.meta.env.VITE_API_URL;
+const PRODUCTION_API_URL = "https://url-shortener-api-9ucd.onrender.com";
 
-// On Vercel, if VITE_API_URL is not set, we default to the current origin's /api
-// But for robustness in cross-domain scenarios, we prefer absolute if available.
 const BASE_URL = isDev
   ? '/api'
-  : (VITE_API_URL ? `${VITE_API_URL}/api` : `${window.location.origin}/api`);
+  : (VITE_API_URL ? `${VITE_API_URL}/api` : `${PRODUCTION_API_URL}/api`);
 
 const api = axios.create({
   baseURL: BASE_URL,

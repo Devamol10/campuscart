@@ -16,11 +16,17 @@ export const AuthProvider = ({ children }) => {
       const res = await api.get("/auth/me");
       
       // Safety check for response structure (Vercel might return HTML on 404/Rewrites)
+      if (typeof res.data === 'string' && res.data.trim().startsWith('<')) {
+        console.warn("Auth check failed: Received HTML instead of JSON (likely Vercel routing issue)");
+        setUser(null);
+        return null;
+      }
+
       if (res.data && typeof res.data === 'object' && res.data.success) {
         setUser(res.data.data);
         return res.data.data;
       } else {
-        console.warn("Auth check failed: Invalid response format", res.data);
+        console.warn("Auth check failed: Invalid response format or success=false", res.data);
         setUser(null);
         return null;
       }
