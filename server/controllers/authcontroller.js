@@ -320,6 +320,11 @@ export const refreshToken = asyncHandler(async (req, res) => {
   }
 
   const hashedToken = hashRefreshToken(token);
+  if (!hashedToken) {
+    return res.status(401).json({
+      message: "Invalid refresh token format",
+    });
+  }
 
   // Find the token
   let storedToken = await RefreshToken.findOne({
@@ -329,11 +334,9 @@ export const refreshToken = asyncHandler(async (req, res) => {
   // 1. GRACE WINDOW LOGIC: If token was recently replaced (within 30s), treat as success
   if (storedToken && storedToken.replacedBy) {
     const timeSinceRotation = Date.now() - new Date(storedToken.updatedAt).getTime();
-    if (timeSinceRotation < 30000) { // 30 seconds grace
+    if (timeSinceRotation < 30000 && storedToken.user) { // 30 seconds grace
       const user = storedToken.user;
       const newAccessToken = generateAccessToken(user._id);
-      // We don't issue a new refresh token here to avoid chain-reaction
-      // The client should already have the new refresh token from the first request
       return res.status(200).json({
         success: true,
         message: "Access token refreshed (grace window)",
@@ -342,11 +345,11 @@ export const refreshToken = asyncHandler(async (req, res) => {
     }
   }
 
-  // 2. VALIDATION: Must exist, not be replaced, and not be expired
-  if (!storedToken || storedToken.replacedBy || storedToken.expiresAt < new Date()) {
+  // 2. VALIDATION: Must exist, not be replaced, not be expired, and have a valid user
+  if (!storedToken || storedToken.replacedBy || storedToken.expiresAt < new Date() || !storedToken.user) {
     clearAuthCookies(res);
     return res.status(403).json({
-      message: "Invalid or expired refresh token. Please login again.",
+      message: "Invalid or expired session. Please login again.",
     });
   }
 

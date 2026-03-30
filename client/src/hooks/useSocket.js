@@ -30,8 +30,17 @@ export const useSocket = () => {
 
       const initSocket = async () => {
         try {
+          const localToken = localStorage.getItem('token');
+          if (!localToken) {
+            connectionAttempted = false;
+            return;
+          }
+
           const res = await api.get('/auth/token');
-          if (!res.data || !res.data.token) return;
+          if (!res.data || !res.data.token) {
+            connectionAttempted = false;
+            return;
+          }
 
           const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
