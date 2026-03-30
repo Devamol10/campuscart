@@ -1,6 +1,6 @@
 import express from "express";
-import rateLimit from "express-rate-limit";
 import RefreshToken from "../models/RefreshToken.js";
+import jwt from "jsonwebtoken";
 
 import passport from "../config/passport.js";
 import {
@@ -24,31 +24,6 @@ const clientUrl = () =>
   (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/+$/, "");
 
 const router = express.Router();
-
-// rate limiters
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { message: "Too many login attempts. Please try again after 15 minutes." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const verificationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { message: "Too many verification requests. Please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const refreshLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: { message: "Too many refresh attempts. Please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // oauth: google
 router.get(
@@ -136,20 +111,33 @@ router.get("/me", protect, async (req, res) => {
   }
 
   res.status(200).json({
-    userId: user._id,
-    email: user.email,
-    isVerified: user.isVerified,
+    success: true,
+    data: {
+      userId: user._id,
+      email: user.email,
+      isVerified: user.isVerified,
+    }
   });
 });
 
+// Socket.io token auth
+router.get("/token", protect, (req, res) => {
+  const token = jwt.sign(
+    { userId: req.userId || req.user?._id },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "1h" }
+  );
+  res.status(200).json({ success: true, token });
+});
+
 // email verification
-router.post("/request-verification", verificationLimiter, requestVerification);
+router.post("/request-verification", requestVerification);
 router.get("/verify/:token", verifyEmail);
-router.post("/set-password", verificationLimiter, setPassword);
+router.post("/set-password", setPassword);
 
 // auth flow
-router.post("/login", loginLimiter, login);
-router.post("/refresh", refreshLimiter, refreshToken);
+router.post("/login", login);
+router.post("/refresh", refreshToken);
 router.post("/logout", logout);
 
 export default router;

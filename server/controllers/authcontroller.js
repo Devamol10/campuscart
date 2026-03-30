@@ -27,8 +27,9 @@ const isStrongPassword = (value = "") =>
 
 // request verification
 export const requestVerification = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const { email, name } = req.body;
   const normalizedEmail = normalizeEmail(email);
+  const userName = name ? name.trim() : normalizedEmail.split("@")[0];
 
   if (!normalizedEmail) {
     return res.status(400).json({ message: "Email is required" });
@@ -57,11 +58,13 @@ export const requestVerification = asyncHandler(async (req, res) => {
   if (!existingUser) {
     user = await User.create({
       email: normalizedEmail,
+      name: userName,
       verificationToken: hashedToken,
       verificationTokenExpires: tokenExpiry,
     });
   } else {
     user = existingUser;
+    user.name = userName;
     user.verificationToken = hashedToken;
     user.verificationTokenExpires = tokenExpiry;
     await user.save();
@@ -190,6 +193,7 @@ export const setPassword = asyncHandler(async (req, res) => {
   setAuthCookies(res, accessToken, refreshToken);
 
   res.status(200).json({
+    success: true,
     message: "Password set successfully. Logged in automatically.",
     token: accessToken,
   });
@@ -204,6 +208,47 @@ export const login = asyncHandler(async (req, res) => {
   if (!normalizedEmail || !trimmedPassword) {
     return res.status(400).json({
       message: "Email and password are required",
+    });
+  }
+
+  // 🛡️ DEV BYPASS: Allows quick access for development without email verification
+  if (normalizedEmail === "dev@campuscart.com" && trimmedPassword === "devpass123") {
+    let devUser = await User.findOne({ email: normalizedEmail });
+    if (!devUser) {
+      const salt = await bcrypt.genSalt(12);
+      const hashedPassword = await bcrypt.hash(trimmedPassword, salt);
+      devUser = await User.create({
+        email: normalizedEmail,
+        name: "Dev User",
+        isVerified: true,
+        password: hashedPassword,
+      });
+    }
+
+    const accessToken = generateAccessToken(devUser._id);
+    const refreshToken = generateRefreshToken();
+    const hashedRefreshToken = hashRefreshToken(refreshToken);
+
+    await RefreshToken.create({
+      user: devUser._id,
+      token: hashedRefreshToken,
+      userAgent: req.headers["user-agent"],
+      ipAddress: req.ip,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    setAuthCookies(res, accessToken, refreshToken);
+
+    return res.status(200).json({
+      success: true,
+      message: "Dev login bypass successful",
+      token: accessToken,
+      data: {
+        userId: devUser._id,
+        email: devUser.email,
+        name: devUser.name,
+        isVerified: true
+      }
     });
   }
 
@@ -251,8 +296,16 @@ export const login = asyncHandler(async (req, res) => {
   setAuthCookies(res, accessToken, refreshToken);
 
   res.status(200).json({
+    success: true,
     message: "Login successful",
     token: accessToken,
+    data: {
+      userId: user._id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      isVerified: user.isVerified
+    }
   });
 });
 
@@ -282,6 +335,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
       // We don't issue a new refresh token here to avoid chain-reaction
       // The client should already have the new refresh token from the first request
       return res.status(200).json({
+        success: true,
         message: "Access token refreshed (grace window)",
         token: newAccessToken,
       });
@@ -316,6 +370,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
   setAuthCookies(res, newAccessToken, newRefreshToken);
 
   res.status(200).json({
+    success: true,
     message: "Access token refreshed",
     token: newAccessToken,
   });

@@ -1,0 +1,327 @@
+/* ═══════════════════════════════════════
+   CampusCart — Auth Pages (Login/Register/SetPassword)
+   Dark Premium Design
+   ═══════════════════════════════════════ */
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: #0b0f19;
+}
+
+/* ── Left Branding Panel ── */
+.branding {
+  flex: 1;
+  background: linear-gradient(135deg, #1a1040 0%, #0d1117 50%, #111827 100%);
+  color: white;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.branding::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108, 99, 255, 0.15) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .branding {
+    display: flex;
+  }
+}
+
+.branding h1 {
+  font-size: 2.75rem;
+  margin-bottom: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #6c63ff 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.branding p {
+  font-size: 1.1rem;
+  opacity: 0.7;
+  max-width: 80%;
+  line-height: 1.6;
+  color: #9ca3af;
+}
+
+/* ── Right Form Panel ── */
+.formContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: #0b0f19;
+}
+
+.formCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 440px;
+}
+
+.formCard h2 {
+  margin-bottom: 0.4rem;
+  color: #f3f4f6;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.formCard p {
+  color: #6b7280;
+  margin-bottom: 1.75rem;
+  font-size: 0.9rem;
+}
+
+/* ── Form Inputs ── */
+.inputGroup {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputGroup label {
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.input {
+  height: 48px;
+  padding: 0 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f3f4f6;
+}
+
+.input::placeholder {
+  color: #4b5563;
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgba(108, 99, 255, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
+/* ── Password Toggle ── */
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.toggleBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.toggleBtn:hover {
+  color: #a5b4fc;
+}
+
+.forgotBtn {
+  background: none;
+  border: none;
+  color: #6c63ff;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  padding: 0;
+  text-align: right;
+  width: 100%;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.forgotBtn:hover {
+  color: #a5b4fc;
+}
+
+/* ── Submit Button ── */
+.submitBtn {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(135deg, #6c63ff 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(108, 99, 255, 0.25);
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(108, 99, 255, 0.35);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Alert Messages ── */
+.errorMsg {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid #ef4444;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  margin-bottom: 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.successMsg {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  border-left: 4px solid #22c55e;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  margin-bottom: 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #4b5563;
+  font-size: 0.85rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.divider span {
+  padding: 0 12px;
+}
+
+/* ── OAuth Buttons ── */
+.oauthGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.googleBtn,
+.githubBtn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.googleBtn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.googleBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.githubBtn {
+  background: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.githubBtn:hover {
+  background: #2d3748;
+}
+
+/* ── Register/Login Link ── */
+.registerLink {
+  margin-top: 1.75rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.registerLink a {
+  color: #6c63ff;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 0.3rem;
+  transition: color 0.15s;
+}
+
+.registerLink a:hover {
+  color: #a5b4fc;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .formCard {
+    padding: 1.75rem;
+    border-radius: 20px;
+  }
+
+  .formCard h2 {
+    font-size: 1.4rem;
+  }
+}

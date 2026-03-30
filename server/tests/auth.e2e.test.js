@@ -29,6 +29,7 @@ before(async () => {
   process.env.CLIENT_URL = "http://localhost:5173";
   process.env.BASE_URL = "http://localhost:5000";
   process.env.SESSION_SECRET = "test_session_secret";
+  process.env.ACCESS_TOKEN_SECRET = "test_access_token_secret_must_be_64_characters_long_for_production_aa";
   process.env.NODE_ENV = "test";
   process.env.GOOGLE_CLIENT_ID = "dummy-google-id";
   process.env.GOOGLE_CLIENT_SECRET = "dummy-google-secret";
@@ -289,4 +290,15 @@ describe("Token storage", () => {
     assert.equal(typeof user.refreshToken, "string");
     assert.equal(user.refreshToken.length, 64); // sha256 hex
   });
+});
+it("11.2 — server.js authLimiter is configured for production", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const serverFile = fs.readFileSync(
+    path.resolve(import.meta.dirname, "..", "server.js"),
+    "utf-8"
+  );
+
+  assert.ok(serverFile.includes("authLimiter"), "server.js should define authLimiter");
+  assert.ok(serverFile.includes('max: isProd ? 50 : 100'), "authLimiter should have production-ready max limits");
 });

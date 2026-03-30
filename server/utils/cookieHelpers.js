@@ -7,7 +7,8 @@ function getCookieOptions() {
         httpOnly: true,
         secure: isProd,
         sameSite: isProd ? "none" : "lax",
-         maxAge: REFRESH_TOKEN_MAX_AGE,
+        domain: undefined,
+        maxAge: REFRESH_TOKEN_MAX_AGE,
         path: "/",          
     };
 }

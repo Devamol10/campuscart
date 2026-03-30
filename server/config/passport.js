@@ -14,13 +14,17 @@ if (isProd && !BASE_URL.startsWith("https://")) {
 const normalizeEmail = (value = "") =>
   typeof value === "string" ? value.trim().toLowerCase() : "";
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${BASE_URL}/api/auth/google/callback`,
-    },
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+if (googleClientId && googleClientSecret && !googleClientId.includes("your-google")) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: googleClientId,
+        clientSecret: googleClientSecret,
+        callbackURL: `${BASE_URL}/api/auth/google/callback`,
+      },
     async (accessToken, refreshToken, profile, done) => {
       try {
         if (!profile?.emails?.length) {
@@ -41,6 +45,8 @@ passport.use(
 
         if (!user) {
           user = await User.create({
+            name: profile.displayName,
+            avatar: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : "",
             email: normalizedEmail,
             googleId,
             providers: ["google"],
@@ -63,16 +69,22 @@ passport.use(
         done(null, false);
       }
     }
-  )
-);
+  ));
+} else {
+  console.warn("Google OAuth credentials missing or placeholder. Skipping strategy registration.");
+}
 
-passport.use(
-  new GitHubStrategy(
-    {
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${BASE_URL}/api/auth/github/callback`,
-    },
+const githubClientId = process.env.GITHUB_CLIENT_ID;
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+
+if (githubClientId && githubClientSecret && !githubClientId.includes("your-github")) {
+  passport.use(
+    new GitHubStrategy(
+      {
+        clientID: githubClientId,
+        clientSecret: githubClientSecret,
+        callbackURL: `${BASE_URL}/api/auth/github/callback`,
+      },
     async (accessToken, refreshToken, profile, done) => {
       try {
         const email =
@@ -109,6 +121,8 @@ passport.use(
           }
         } else {
           user = await User.create({
+            name: profile.displayName || profile.username,
+            avatar: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : "",
             email: resolvedEmail,
             githubId: profile.id,
             providers: ["github"],
@@ -121,8 +135,10 @@ passport.use(
         return done(error, null);
       }
     }
-  )
-);
+  ));
+} else {
+  console.warn("GitHub OAuth credentials missing or placeholder. Skipping strategy registration.");
+}
 
 const fetchGithubPrimaryEmail = async (accessToken) => {
   try {
@@ -130,7 +146,7 @@ const fetchGithubPrimaryEmail = async (accessToken) => {
       headers: {
         Accept: "application/vnd.github+json",
         Authorization: `token ${accessToken}`,
-        "User-Agent": "url-shortner-app",
+        "User-Agent": "campuscart-app",
       },
     });
 
