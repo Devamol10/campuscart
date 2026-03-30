@@ -42,7 +42,9 @@ export const useSocket = () => {
             return;
           }
 
-          const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+          const isDev = import.meta.env.MODE === 'development';
+          const backendUrl = import.meta.env.VITE_API_URL || 
+            (isDev ? "http://localhost:5000" : "https://campuscart-auwp.onrender.com");
 
           socketInstance = io(backendUrl, {
             auth: { token: res.data.token },

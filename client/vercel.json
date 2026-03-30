@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://url-shortener-api-9ucd.onrender.com/api/$1"
+      "destination": "https://campuscart-auwp.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
