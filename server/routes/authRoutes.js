@@ -100,8 +100,16 @@ router.get(
   }
 );
 
+// helper to prevent caching of auth state
+const noCache = (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+};
+
 // auth status
-router.get("/me", protect, async (req, res) => {
+router.get("/me", noCache, protect, async (req, res) => {
   const user = await User.findById(req.userId);
 
   if (!user) {
@@ -121,7 +129,7 @@ router.get("/me", protect, async (req, res) => {
 });
 
 // Socket.io token auth
-router.get("/token", protect, (req, res) => {
+router.get("/token", noCache, protect, (req, res) => {
   const token = jwt.sign(
     { userId: req.userId || req.user?._id },
     process.env.ACCESS_TOKEN_SECRET,

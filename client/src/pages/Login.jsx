@@ -14,12 +14,18 @@ const Login = () => {
   const [success, setSuccess] = useState(location.state?.message || "");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (success && (email || password)) setSuccess("");
-  }, [email, password, success]);
-
-  if (user) {
+  if (user && !loading) {
     return <Navigate to="/" replace />;
+  }
+
+  // Still verifying initial session? Show a small dark loader.
+  if (loading && !email && !password) {
+    return (
+      <div style={{ height: '100vh', backgroundColor: '#0b0f19', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+         <div style={{ width: '40px', height: '40px', border: '3px solid #1f2937', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
   const handleSubmit = async (e) => {
