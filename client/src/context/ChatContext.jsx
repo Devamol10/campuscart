@@ -8,14 +8,15 @@ import api from '../services/api';
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
   const { socket, connected } = useSocket();
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [unreadOffersTotal, setUnreadOffersTotal] = useState(0);
 
-  // Track the current user ID to prevent redundant initial fetches
-  const userId = user?.userId || user?._id;
+  // Stable user ID — only changes on actual login/logout
+  const userId = user?.userId || user?._id || null;
   const lastFetchedUserId = useRef(null);
+  const isFetching = useRef(false);
 
   const refreshUnreadCount = useCallback(async () => {
     if (!userId) {
@@ -27,8 +28,8 @@ export const ChatProvider = ({ children }) => {
       if (res.data?.success) {
         setUnreadTotal(res.data.count || 0);
       }
-    } catch (error) {
-      // ignore
+    } catch {
+      // ignore — don't retry on failure
     }
   }, [userId]);
 
@@ -42,50 +43,51 @@ export const ChatProvider = ({ children }) => {
       if (res.data?.success) {
         setUnreadOffersTotal(res.data.count || 0);
       }
-    } catch (error) {
+    } catch {
       // ignore
     }
   }, [userId]);
 
-  // Initial fetch on mount or when user ID changes
+  // Fetch ONCE when (a) auth is ready AND (b) we have a user AND (c) we haven't already fetched for this user
   useEffect(() => {
-    if (userId && userId !== lastFetchedUserId.current) {
-      refreshUnreadCount();
-      refreshUnreadOffersCount();
+    if (!isInitialized) return; // Wait until AuthContext has finished its first check
+
+    if (userId && userId !== lastFetchedUserId.current && !isFetching.current) {
+      isFetching.current = true;
       lastFetchedUserId.current = userId;
+      Promise.all([refreshUnreadCount(), refreshUnreadOffersCount()]).finally(() => {
+        isFetching.current = false;
+      });
     } else if (!userId) {
       setUnreadTotal(0);
       setUnreadOffersTotal(0);
       lastFetchedUserId.current = null;
     }
-  }, [userId, refreshUnreadCount, refreshUnreadOffersCount]);
+  }, [isInitialized, userId, refreshUnreadCount, refreshUnreadOffersCount]);
 
-  // Global Sync via Sockets
+  // Global Sync via Sockets — only attach listeners once socket is connected and user is valid
   useEffect(() => {
     if (!socket || !connected || !userId) return;
 
     const handleNewMessage = (msg) => {
       const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
-      
-      // Increment if message is from someone else
       if (String(senderId) !== String(userId)) {
         setUnreadTotal((prev) => prev + 1);
       }
     };
 
     const handleReadSync = ({ readBy }) => {
-      // If I am the one who read messages (in another tab or current tab), refresh total
       if (String(readBy) === String(userId)) {
         refreshUnreadCount();
       }
     };
 
     const handleOfferReceived = () => {
-        setUnreadOffersTotal((prev) => prev + 1);
+      setUnreadOffersTotal((prev) => prev + 1);
     };
 
     const handleOfferStatusChanged = () => {
-        setUnreadOffersTotal((prev) => prev + 1);
+      setUnreadOffersTotal((prev) => prev + 1);
     };
 
     socket.on('newMessage', handleNewMessage);
