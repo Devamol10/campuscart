@@ -1,9 +1,11 @@
+// CampusCart — ItemDetails.jsx (Premium Overhall)
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { BuyModal, OfferModal } from '../components/ActionModals';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import styles from './ItemDetails.module.css';
 
 const ItemDetails = () => {
   const { id } = useParams();
@@ -31,6 +33,10 @@ const ItemDetails = () => {
     fetchItem();
   }, [id]);
 
+  useEffect(() => {
+     window.scrollTo(0, 0);
+  }, []);
+
   const handleContactSeller = async () => {
     if (!item) return;
     try {
@@ -57,11 +63,12 @@ const ItemDetails = () => {
 
   if (loading) {
     return (
-      <div style={s.page}>
+      <div className={styles.page}>
         <Navbar />
-        <div style={s.stateBox}>
-          <div style={s.spinner} />
-          <p style={{ color: '#6b7280' }}>Loading item details...</p>
+        <div className={styles.stateBox}>
+          <div className={styles.spinner} />
+          <h3 style={{ color: '#fff' }}>Uncovering details...</h3>
+          <p style={{ color: '#6b7280' }}>Fetching everything about this item.</p>
         </div>
       </div>
     );
@@ -69,59 +76,57 @@ const ItemDetails = () => {
 
   if (!item) {
     return (
-      <div style={s.page}>
+      <div className={styles.page}>
         <Navbar />
-        <div style={s.stateBox}>
-          <span style={{ fontSize: '3rem' }}>🔍</span>
-          <h3 style={{ color: '#e5e7eb', margin: '0.5rem 0' }}>Item not found</h3>
-          <Link to="/" style={s.backLink}>← Back to Marketplace</Link>
+        <div className={styles.stateBox}>
+          <span style={{ fontSize: '4rem' }}>📭</span>
+          <h2 style={{ color: '#fff', margin: '1rem 0' }}>Item not found</h2>
+          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>The listing may have been moved or removed.</p>
+          <Link to="/" className={styles.backLink}>← Back to Marketplace</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={s.page}>
+    <div className={styles.page}>
       <Navbar />
-      <div style={s.wrapper}>
+      <div className={styles.wrapper}>
         {/* Breadcrumb */}
-        <div style={s.breadcrumb}>
-          <Link to="/" style={s.breadcrumbLink}>Home</Link>
-          <span style={s.breadcrumbSep}>/</span>
-          <span style={s.breadcrumbCurrent}>{item.title}</span>
+        <div className={styles.breadcrumb}>
+          <Link to="/" className={styles.breadcrumbLink}>Marketplace</Link>
+          <span className={styles.breadcrumbSep}>/</span>
+          <span className={styles.breadcrumbCurrent}>{item.title}</span>
         </div>
 
-        <div style={s.grid}>
+        <div className={styles.grid}>
           {/* ── Left: Image Gallery ── */}
-          <div style={s.imageSection}>
-            <div style={s.mainImageBox}>
+          <div className={styles.imageSection}>
+            <div className={styles.mainImageBox}>
               {images.length > 0 ? (
-                <img src={images[activeImg]} alt={item.title} style={s.mainImage} />
+                <img src={images[activeImg]} alt={item.title} className={styles.mainImage} />
               ) : (
-                <div style={s.noImage}>
-                  <span style={{ fontSize: '3rem' }}>📷</span>
-                  <p style={{ color: '#4b5563', margin: 0 }}>No image available</p>
+                <div className={styles.noImage}>
+                  <span style={{ fontSize: '4rem' }}>📷</span>
+                  <p style={{ color: '#64748b', fontWeight: '600' }}>Waiting for snapshots</p>
                 </div>
               )}
               {item.status === 'sold' && (
-                <div style={s.soldBanner}>SOLD</div>
+                <div className={styles.soldBanner}>SOLD</div>
               )}
               {item.condition && (
-                <span style={s.conditionTag}>{item.condition}</span>
+                <span className={styles.conditionTag}>{item.condition}</span>
               )}
             </div>
             {images.length > 1 && (
-              <div style={s.thumbRow}>
+              <div className={styles.thumbRow}>
                 {images.map((img, i) => (
                   <button
                     key={i}
-                    style={{
-                      ...s.thumb,
-                      ...(i === activeImg ? s.thumbActive : {}),
-                    }}
+                    className={`${styles.thumb} ${i === activeImg ? styles.thumbActive : ''}`}
                     onClick={() => setActiveImg(i)}
                   >
-                    <img src={img} alt="" style={s.thumbImg} />
+                    <img src={img} alt="" className={styles.thumbImg} />
                   </button>
                 ))}
               </div>
@@ -129,56 +134,60 @@ const ItemDetails = () => {
           </div>
 
           {/* ── Right: Details ── */}
-          <div style={s.details}>
-            <span style={s.categoryBadge}>{item.category}</span>
-            <h1 style={s.title}>{item.title}</h1>
-            <p style={s.price}>₹{item.price?.toLocaleString()}</p>
+          <div className={styles.details}>
+            <div className={styles.headerInfo}>
+               <span className={styles.categoryBadge}>{item.category}</span>
+               <h1 className={styles.title}>{item.title}</h1>
+               <p className={styles.price}>₹{item.price?.toLocaleString()}</p>
+            </div>
 
             {/* Description */}
-            <div style={s.section}>
-              <h3 style={s.sectionTitle}>Description</h3>
-              <p style={s.desc}>{item.description || 'No description provided.'}</p>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Details & Description</h3>
+              <p className={styles.desc}>{item.description || 'No description provided.'}</p>
             </div>
 
             {/* Seller Card */}
-            <div style={s.sellerCard}>
-              <div style={s.sellerAvatar}>
+            <div className={styles.sellerCard}>
+              <div className={styles.sellerAvatar}>
                 {item.sellerId?.name?.charAt(0)?.toUpperCase() || 'S'}
               </div>
-              <div style={s.sellerInfo}>
-                <span style={s.sellerLabel}>Seller</span>
-                <span style={s.sellerName}>{item.sellerId?.name || 'Student'}</span>
+              <div className={styles.sellerInfo}>
+                <span className={styles.sellerLabel}>Trusted Seller</span>
+                <span className={styles.sellerName}>{item.sellerId?.name || 'Student'}</span>
                 {item.sellerId?.email && (
-                  <span style={s.sellerEmail}>{item.sellerId.email}</span>
+                  <span className={styles.sellerEmail}>{item.sellerId.email}</span>
                 )}
               </div>
             </div>
 
             {/* Actions */}
             {!isSeller && item.status !== 'sold' && (
-              <div style={s.actionGroup}>
-                <button style={s.buyBtn} onClick={() => setIsBuyOpen(true)}>
-                  Buy Now
+              <div className={styles.actionGroup}>
+                <button className={styles.buyBtn} onClick={() => setIsBuyOpen(true)}>
+                  Secure Now
                 </button>
-                <button style={s.offerBtn} onClick={() => setIsOfferOpen(true)}>
-                  💰 Make Offer
+                <button className={styles.offerBtn} onClick={() => setIsOfferOpen(true)}>
+                  Make Offer
                 </button>
               </div>
             )}
 
             {!isSeller && (
-              <button style={s.chatBtn} onClick={handleContactSeller}>
-                💬 Contact Seller
+              <button className={styles.chatBtn} onClick={handleContactSeller}>
+                💬 Start Conversation
               </button>
             )}
 
             {isSeller && (
-              <div style={s.ownerBadge}>
-                You own this listing
+              <div className={styles.ownerBadge}>
+                This is your listing
               </div>
             )}
 
-            <Link to="/" style={s.backLink}>← Back to Marketplace</Link>
+            <Link to="/" className={styles.backLink}>
+               Explore More Items →
+            </Link>
           </div>
         </div>
       </div>
@@ -194,142 +203,5 @@ const ItemDetails = () => {
     </div>
   );
 };
-
-const s = {
-  page: { minHeight: '100vh', background: '#0b0f19' },
-  wrapper: { maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.5rem 4rem' },
-  stateBox: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', padding: '6rem 2rem', gap: '1rem', textAlign: 'center',
-  },
-  spinner: {
-    width: '36px', height: '36px', border: '3px solid rgba(108,99,255,0.2)',
-    borderTopColor: '#6c63ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite',
-  },
-
-  /* Breadcrumb */
-  breadcrumb: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' },
-  breadcrumbLink: { color: '#6b7280', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '500' },
-  breadcrumbSep: { color: '#4b5563', fontSize: '0.75rem' },
-  breadcrumbCurrent: { color: '#9ca3af', fontSize: '0.85rem', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' },
-
-  /* Grid */
-  grid: { display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: '2.5rem', alignItems: 'start' },
-
-  /* Image section */
-  imageSection: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  mainImageBox: {
-    position: 'relative', borderRadius: '20px', overflow: 'hidden',
-    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
-    aspectRatio: '4/3',
-  },
-  mainImage: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  noImage: {
-    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center', gap: '0.5rem', minHeight: '300px',
-  },
-  soldBanner: {
-    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: '#ef4444', fontSize: '2rem', fontWeight: '900', letterSpacing: '0.1em',
-  },
-  conditionTag: {
-    position: 'absolute', top: '14px', left: '14px',
-    background: 'rgba(17,24,39,0.85)', backdropFilter: 'blur(8px)',
-    color: '#e5e7eb', padding: '0.3rem 0.75rem', borderRadius: '10px',
-    fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase',
-    border: '1px solid rgba(255,255,255,0.08)',
-  },
-  thumbRow: { display: 'flex', gap: '0.5rem' },
-  thumb: {
-    width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden',
-    border: '2px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)',
-    cursor: 'pointer', padding: 0, transition: 'border-color 0.15s ease',
-  },
-  thumbActive: { borderColor: '#6c63ff' },
-  thumbImg: { width: '100%', height: '100%', objectFit: 'cover' },
-
-  /* Details */
-  details: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  categoryBadge: {
-    display: 'inline-block', padding: '0.3rem 0.8rem',
-    background: 'rgba(108,99,255,0.1)', color: '#a5b4fc',
-    borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: '0.05em', width: 'fit-content',
-  },
-  title: {
-    fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: '800', lineHeight: 1.15,
-    color: '#f3f4f6', margin: '0.5rem 0 0.25rem', letterSpacing: '-0.02em',
-  },
-  price: {
-    fontSize: '1.75rem', fontWeight: '800', color: '#22c55e', margin: '0 0 1rem',
-  },
-
-  section: {
-    padding: '1.25rem 0', borderTop: '1px solid rgba(255,255,255,0.06)',
-  },
-  sectionTitle: {
-    fontSize: '0.8rem', fontWeight: '700', color: '#6b7280',
-    textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.6rem',
-  },
-  desc: { fontSize: '0.95rem', color: '#9ca3af', lineHeight: 1.6, margin: 0 },
-
-  /* Seller card */
-  sellerCard: {
-    display: 'flex', alignItems: 'center', gap: '0.875rem',
-    padding: '1rem 1.15rem', background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px',
-    margin: '0.5rem 0 1rem',
-  },
-  sellerAvatar: {
-    width: '44px', height: '44px', borderRadius: '50%',
-    background: 'linear-gradient(135deg, #6c63ff 0%, #3b82f6 100%)',
-    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontWeight: '700', fontSize: '1.1rem', flexShrink: 0,
-  },
-  sellerInfo: { display: 'flex', flexDirection: 'column' },
-  sellerLabel: { fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  sellerName: { fontSize: '0.95rem', fontWeight: '700', color: '#f3f4f6' },
-  sellerEmail: { fontSize: '0.8rem', color: '#6b7280' },
-
-  /* Buttons */
-  actionGroup: { display: 'flex', gap: '0.75rem', marginTop: '0.5rem' },
-  buyBtn: {
-    flex: 1, padding: '0.9rem 1.5rem',
-    background: 'linear-gradient(135deg, #6c63ff 0%, #3b82f6 100%)',
-    color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '700',
-    fontSize: '0.95rem', cursor: 'pointer',
-    boxShadow: '0 4px 16px rgba(108,99,255,0.25)', transition: 'all 0.15s ease',
-  },
-  offerBtn: {
-    flex: 1, padding: '0.9rem 1.5rem', background: 'transparent',
-    color: '#a5b4fc', border: '2px solid rgba(108,99,255,0.4)',
-    borderRadius: '12px', fontWeight: '700', fontSize: '0.95rem',
-    cursor: 'pointer', transition: 'all 0.15s ease',
-  },
-  chatBtn: {
-    width: '100%', padding: '0.85rem',
-    background: 'rgba(255,255,255,0.05)', color: '#d1d5db',
-    border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px',
-    fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer',
-    transition: 'all 0.15s ease', marginTop: '0.25rem',
-  },
-  ownerBadge: {
-    padding: '0.8rem', background: 'rgba(108,99,255,0.08)',
-    border: '1px solid rgba(108,99,255,0.2)', borderRadius: '12px',
-    color: '#a5b4fc', fontWeight: '600', fontSize: '0.9rem',
-    textAlign: 'center', margin: '0.5rem 0',
-  },
-  backLink: {
-    display: 'inline-flex', color: '#6b7280', textDecoration: 'none',
-    fontWeight: '600', fontSize: '0.88rem', marginTop: '1.5rem',
-    transition: 'color 0.15s',
-  },
-};
-
-// Responsive override via media query in CSS would be ideal, but inline works for now
-if (typeof window !== 'undefined' && window.innerWidth <= 768) {
-  s.grid.gridTemplateColumns = '1fr';
-}
 
 export default ItemDetails;

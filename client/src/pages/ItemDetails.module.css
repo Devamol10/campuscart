@@ -1,0 +1,440 @@
+/* ═══════════════════════════════════════
+   CampusCart — ItemDetails (Premium Dark)
+   ═══════════════════════════════════════ */
+
+.page {
+  min-height: 100vh;
+  background: #0b0f19;
+  color: #fff;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+}
+
+/* ── Breadcrumb ── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  padding: 0.5rem 0;
+}
+
+.breadcrumbLink {
+  color: #64748b;
+  font-size: 0.9rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.breadcrumbLink:hover {
+  color: #6c63ff;
+}
+
+.breadcrumbSep {
+  color: #334155;
+  font-size: 0.8rem;
+}
+
+.breadcrumbCurrent {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+}
+
+/* ── Grid Layout ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+/* ── Image Section ── */
+.imageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: sticky;
+  top: 100px;
+}
+
+.mainImageBox {
+  position: relative;
+  border-radius: 32px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  aspect-ratio: 4/3;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.mainImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.mainImageBox:hover .mainImage {
+  transform: scale(1.03);
+}
+
+.noImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.5) 0%, rgba(17, 24, 39, 0.6) 100%);
+}
+
+.soldBanner {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f87171;
+  font-size: 3rem;
+  font-weight: 950;
+  letter-spacing: 0.2em;
+  z-index: 10;
+}
+
+.conditionTag {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+.thumbRow {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+.thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.thumbActive {
+  border-color: #6c63ff;
+  box-shadow: 0 0 15px rgba(108, 99, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Details Section ── */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.categoryBadge {
+  display: inline-block;
+  padding: 0.4rem 1.1rem;
+  background: rgba(108, 99, 255, 0.12);
+  color: #a5b4fc;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  width: fit-content;
+  border: 1px solid rgba(108, 99, 255, 0.2);
+}
+
+.title {
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 950;
+  line-height: 1.05;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.price {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #10b981;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.section {
+  padding: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 1rem;
+}
+
+.desc {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  line-height: 1.8;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ── Seller Card ── */
+.sellerCard {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  margin: 1rem 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.sellerAvatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #6c63ff 0%, #3b82f6 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+}
+
+.sellerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sellerLabel {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sellerName {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.sellerEmail {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Actions ── */
+.actionGroup {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.buyBtn {
+  flex: 1;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #6c63ff 0%, #3b82f6 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 10px 40px rgba(108, 99, 255, 0.4);
+  transition: all 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+.buyBtn:hover {
+  transform: translateY(-5px);
+  filter: brightness(1.1);
+  box-shadow: 0 20px 50px rgba(108, 99, 255, 0.5);
+}
+
+.offerBtn {
+  flex: 1;
+  padding: 1.25rem 1.5rem;
+  background: rgba(108, 99, 255, 0.08);
+  color: #a5b4fc;
+  border: 2px solid rgba(108, 99, 255, 0.3);
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.offerBtn:hover {
+  background: rgba(108, 99, 255, 0.15);
+  border-color: #6c63ff;
+  transform: translateY(-2px);
+}
+
+.chatBtn {
+  width: 100%;
+  padding: 1.1rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.chatBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.ownerBadge {
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border: 1px solid rgba(108, 99, 255, 0.3);
+  border-radius: 20px;
+  color: #a5b4fc;
+  font-weight: 800;
+  font-size: 1rem;
+  text-align: center;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.ownerBadge::before {
+  content: '✨';
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 2rem;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.backLink:hover {
+  color: #fff;
+  transform: translateX(-5px);
+}
+
+/* ── Loading States ── */
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10rem 2rem;
+  gap: 2rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(108, 99, 255, 0.1);
+  border-top-color: #6c63ff;
+  border-radius: 50%;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .wrapper {
+    padding: 2rem 1rem 4rem;
+  }
+  
+  .title {
+    font-size: 2.25rem;
+  }
+  
+  .actionGroup {
+    flex-direction: column;
+  }
+  
+  .thumbRow {
+    gap: 0.5rem;
+  }
+  
+  .thumb {
+    width: 65px;
+    height: 65px;
+  }
+}

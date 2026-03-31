@@ -95,7 +95,7 @@ const MyOffers = () => {
   return (
     <>
       <Navbar />
-      <div style={{ background: '#0b0f19', minHeight: '100vh', paddingBottom: '2rem' }}>
+      <div className={styles.page}>
         <div className={styles.container}>
           <h1 className={styles.title}>Manage Offers</h1>
           
@@ -115,9 +115,9 @@ const MyOffers = () => {
           </div>
 
           {loading ? (
-            <div className={styles.empty}>
-              <div style={{ width: '30px', height: '30px', border: '3px solid rgba(108,99,255,0.2)', borderTopColor: '#6c63ff', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
-              <h3>Loading offers...</h3>
+            <div className={styles.stateBox}>
+              <div className={styles.spinner} />
+              <h3>Fetching your offers...</h3>
             </div>
           ) : (
             <div className={styles.offerList}>
