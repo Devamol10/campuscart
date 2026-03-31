@@ -227,7 +227,6 @@ const Chat = () => {
               <span className={styles.chatIcon}>💬</span>
               Messages
             </h2>
-            <span className={styles.convoCount}>{conversations.length}</span>
           </div>
 
           {/* Search */}

@@ -61,6 +61,22 @@ const MyOffers = () => {
     }
   };
 
+  const handleGoToChat = async (listingId, otherUserId) => {
+    if (!listingId || !otherUserId) return;
+    try {
+      const res = await api.post('/chat/conversations', {
+        listingId,
+        otherUserId
+      });
+      if (res.data.success) {
+        navigate(`/chat?conversationId=${res.data.data._id}`);
+      }
+    } catch (err) {
+      console.error("Failed to open chat:", err);
+      navigate('/chat');
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -105,6 +121,8 @@ const MyOffers = () => {
                         src={offer.listing?.images?.[0]?.url || offer.listing?.imageUrl || 'https://via.placeholder.com/100'} 
                         className={styles.itemImage} 
                         alt=""
+                        onClick={() => handleGoToChat(offer.listing?._id, offer.seller?._id || offer.seller)}
+                        style={{ cursor: 'pointer' }}
                       />
                       <div className={styles.offerInfo}>
                         <Link to={`/listings/${offer.listing?._id}`} className={styles.listingTitle}>
@@ -117,9 +135,9 @@ const MyOffers = () => {
                       </div>
                       {offer.status === 'accepted' && (
                         <div className={styles.actions}>
-                          <Link to={`/chat?listingId=${offer.listing?._id}`} className={styles.chatBtn}>
+                          <button onClick={() => handleGoToChat(offer.listing?._id, offer.seller?._id || offer.seller)} className={styles.chatBtn}>
                             Go to Chat
-                          </Link>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -139,6 +157,8 @@ const MyOffers = () => {
                         src={offer.listing?.images?.[0]?.url || offer.listing?.imageUrl || 'https://via.placeholder.com/100'} 
                         className={styles.itemImage} 
                         alt=""
+                        onClick={() => handleGoToChat(offer.listing?._id, offer.buyer?._id || offer.buyer)}
+                        style={{ cursor: 'pointer' }}
                       />
                       <div className={styles.offerInfo}>
                         <Link to={`/listings/${offer.listing?._id}`} className={styles.listingTitle}>
@@ -164,7 +184,7 @@ const MyOffers = () => {
                         </div>
                       ) : (
                         <div className={styles.actions}>
-                           <Link to={`/chat?listingId=${offer.listing?._id}`} className={styles.chatBtn}>View Chat</Link>
+                           <button onClick={() => handleGoToChat(offer.listing?._id, offer.buyer?._id || offer.buyer)} className={styles.chatBtn}>View Chat</button>
                         </div>
                       )}
                     </div>

@@ -50,7 +50,7 @@ const AISearchAssistant = () => {
   const fabRef = useRef(null);
 
   // Hidden routes
-  const hiddenRoutes = ['/set-password', '/create-password', '/login', '/register', '/auth/callback'];
+  const hiddenRoutes = ['/set-password', '/create-password', '/login', '/register', '/auth/callback', '/chat'];
   
   if (hiddenRoutes.includes(location.pathname)) {
     return null;

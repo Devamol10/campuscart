@@ -1,18 +1,74 @@
 // CampusCart — ChatContext.jsx
 // Lightweight context for cross-component chat state (e.g. unread badge on Navbar)
-import React, { createContext, useState, useContext, useCallback } from 'react';
+import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import { useSocket } from '../hooks/useSocket';
+import api from '../services/api';
 
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
+  const { user } = useAuth();
+  const { socket, connected } = useSocket();
   const [unreadTotal, setUnreadTotal] = useState(0);
+
+  const refreshUnreadCount = useCallback(async () => {
+    if (!user) {
+      setUnreadTotal(0);
+      return;
+    }
+    try {
+      const res = await api.get('/chat/unread-count');
+      if (res.data?.success) {
+        setUnreadTotal(res.data.count || 0);
+      }
+    } catch (error) {
+      // ignore
+    }
+  }, [user]);
+
+  // Initial fetch on mount or login
+  useEffect(() => {
+    refreshUnreadCount();
+  }, [refreshUnreadCount]);
+
+  // Global Sync via Sockets
+  useEffect(() => {
+    if (!socket || !connected || !user) return;
+
+    const handleNewMessage = (msg) => {
+      const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
+      const myId = user.userId || user._id;
+
+      // Increment if message is from someone else
+      if (String(senderId) !== String(myId)) {
+        setUnreadTotal((prev) => prev + 1);
+      }
+    };
+
+    const handleReadSync = ({ readBy }) => {
+      const myId = user.userId || user._id;
+      // If I am the one who read messages (in another tab or current tab), refresh total
+      if (String(readBy) === String(myId)) {
+        refreshUnreadCount();
+      }
+    };
+
+    socket.on('newMessage', handleNewMessage);
+    socket.on('messagesRead', handleReadSync);
+
+    return () => {
+      socket.off('newMessage', handleNewMessage);
+      socket.off('messagesRead', handleReadSync);
+    };
+  }, [socket, connected, user, refreshUnreadCount]);
 
   const updateUnreadTotal = useCallback((count) => {
     setUnreadTotal(typeof count === 'number' ? count : 0);
   }, []);
 
   return (
-    <ChatContext.Provider value={{ unreadTotal, updateUnreadTotal }}>
+    <ChatContext.Provider value={{ unreadTotal, updateUnreadTotal, refreshUnreadCount }}>
       {children}
     </ChatContext.Provider>
   );

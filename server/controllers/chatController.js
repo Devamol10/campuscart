@@ -3,6 +3,7 @@ import Message from "../models/Message.js";
 import Listing from "../models/Listing.js";
 import mongoose from "mongoose";
 import asyncHandler from "../middlewares/asyncHandler.js";
+import { getIO } from "../sockets/io.js";
 
 // @desc    Get or create a conversation (race-condition safe via unique index)
 // @route   POST /api/chat/conversations
@@ -120,6 +121,26 @@ export const getMyConversations = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: conversationsWithUnread });
 });
 
+// @desc    Get total unread messages count for the logged-in user
+// @route   GET /api/chat/unread-count
+// @access  Private
+export const getUnreadCount = asyncHandler(async (req, res) => {
+  const conversations = await Conversation.find({
+    participants: req.user._id,
+    isActive: true,
+  }).select("_id");
+
+  const convoIds = conversations.map((c) => c._id);
+
+  const count = await Message.countDocuments({
+    conversation: { $in: convoIds },
+    sender: { $ne: req.user._id },
+    read: false,
+  });
+
+  res.status(200).json({ success: true, count });
+});
+
 // @desc    Get all messages for a conversation
 // @route   GET /api/chat/conversations/:id/messages
 // @access  Private
@@ -151,7 +172,7 @@ export const getMessages = asyncHandler(async (req, res) => {
   }
 
   const messages = await Message.find({ conversation: id })
-    .populate("sender", "name avatar")
+    .populate("sender", "name email avatar")
     .sort({ createdAt: 1 });
 
   // Mark all unread messages from the other participant as read
@@ -222,8 +243,24 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const populatedMessage = await Message.findById(message._id).populate(
     "sender",
-    "name avatar"
+    "name email avatar"
   );
+
+  try {
+    const io = getIO();
+    io.to(conversationId.toString()).emit("newMessage", populatedMessage);
+
+    conversation.participants.forEach((pId) => {
+      const pid = pId.toString();
+      if (pid !== req.user._id.toString()) {
+        io.to(pid).emit("conversationUpdated", {
+          conversationId: conversationId.toString(),
+          lastMessage: text.substring(0, 50),
+          lastMessageAt: new Date(),
+        });
+      }
+    });
+  } catch (err) {}
 
   res.status(201).json({ success: true, data: populatedMessage });
 });

@@ -74,12 +74,25 @@ export const createOffer = asyncHandler(async (req, res) => {
     }
   }
 
-  await Message.create({
+  const messageObj = await Message.create({
     conversation: conversation._id,
     sender: req.user._id,
     text: `Made an offer of ₹${offer.amount}${message ? ` - "${message}"` : ""}`,
     type: "offer"
   });
+
+  try {
+    const io = getIO();
+    const populatedMsg = await Message.findById(messageObj._id).populate("sender", "name email avatar");
+    io.to(conversation._id.toString()).emit("newMessage", populatedMsg);
+    
+    // Notify seller
+    io.to(listing.sellerId.toString()).emit("conversationUpdated", {
+      conversationId: conversation._id.toString(),
+      lastMessage: `Made an offer of ₹${offer.amount}`,
+      lastMessageAt: Date.now()
+    });
+  } catch(e) {}
 
   conversation.offer = offer._id;
   conversation.lastMessage = `Made an offer of ₹${offer.amount}`;
@@ -119,6 +132,7 @@ export const getOffersForListing = asyncHandler(async (req, res) => {
   }
 
   const offers = await Offer.find({ listing: listingId })
+    .populate("listing", "title price images status")
     .populate("buyer", "name email avatar")
     .sort({ createdAt: -1 });
 
@@ -130,7 +144,7 @@ export const getOffersForListing = asyncHandler(async (req, res) => {
 // @access  Private (Buyer)
 export const getMyOffers = asyncHandler(async (req, res) => {
   const offers = await Offer.find({ buyer: req.user._id })
-    .populate("listing", "title price imageUrl status")
+    .populate("listing", "title price images status")
     .populate("seller", "name email avatar")
     .sort({ createdAt: -1 });
 
@@ -204,13 +218,25 @@ export const acceptOffer = asyncHandler(async (req, res) => {
     await conversation.save();
   }
 
-  // Create the first 'offer' type message
-  await Message.create({
+  const messageObj = await Message.create({
     conversation: conversation._id,
     sender: offer.seller,
     text: `Offer of ₹${offer.amount} accepted! You can now coordinate the exchange.`,
     type: "offer"
   });
+
+  try {
+    const io = getIO();
+    const populatedMsg = await Message.findById(messageObj._id).populate("sender", "name email avatar");
+    io.to(conversation._id.toString()).emit("newMessage", populatedMsg);
+    
+    // Notify buyer
+    io.to(offer.buyer.toString()).emit("conversationUpdated", {
+      conversationId: conversation._id.toString(),
+      lastMessage: `Offer of ₹${offer.amount} accepted!`,
+      lastMessageAt: Date.now()
+    });
+  } catch(e) {}
   // --- END CHAT INTEGRATION ---
 
   try { notifyOfferStatus(getIO(), offer.buyer, offer); } catch (e) {}

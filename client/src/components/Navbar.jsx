@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useChatContext } from '../context/ChatContext';
 import styles from './Navbar.module.css';
 
 const Navbar = ({ onSearch }) => {
   const { user, logout } = useAuth();
+  const { unreadTotal } = useChatContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -77,6 +79,11 @@ const Navbar = ({ onSearch }) => {
                 className={`${styles.navLink} ${isActive(item.path) ? styles.active : ''}`}
               >
                 {item.label}
+                {item.path === '/chat' && unreadTotal > 0 && (
+                  <span className={styles.navBadge}>
+                    {unreadTotal > 9 ? '9+' : unreadTotal}
+                  </span>
+                )}
               </Link>
             ))}
 
@@ -153,7 +160,14 @@ const Navbar = ({ onSearch }) => {
             to={item.path}
             className={`${styles.mobileNavLink} ${isActive(item.path) ? styles.active : ''}`}
           >
-            <span>{item.icon}</span>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <span>{item.icon}</span>
+              {item.path === '/chat' && unreadTotal > 0 && (
+                <span className={styles.mobileNavBadge}>
+                  {unreadTotal > 9 ? '9+' : unreadTotal}
+                </span>
+              )}
+            </div>
             {item.label}
           </Link>
         ))}
