@@ -98,6 +98,7 @@
 }
 
 .navLink {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.4rem;
