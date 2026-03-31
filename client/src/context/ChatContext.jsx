@@ -48,26 +48,20 @@ export const ChatProvider = ({ children }) => {
     }
   }, [userId]);
 
-  // Stability: We use a memoized version of counts as they are the only things that change frequently
-  const contextValue = React.useMemo(() => ({
-    unreadTotal,
-    updateUnreadTotal,
-    refreshUnreadCount,
-    unreadOffersTotal,
-    refreshUnreadOffersCount
-  }), [unreadTotal, unreadOffersTotal, updateUnreadTotal, refreshUnreadCount, refreshUnreadOffersCount]);
-
   // Fetch ONCE when (a) auth is ready AND (b) we have a user AND (c) we haven't already fetched for this user
   useEffect(() => {
-    if (!isInitialized || !userId) return; 
+    if (!isInitialized) return; // Wait until AuthContext has finished its first check
 
-    // Only fetch if the user has changed or we haven't fetched in the current session
-    if (userId !== lastFetchedUserId.current && !isFetching.current) {
+    if (userId && userId !== lastFetchedUserId.current && !isFetching.current) {
       isFetching.current = true;
       lastFetchedUserId.current = userId;
       Promise.all([refreshUnreadCount(), refreshUnreadOffersCount()]).finally(() => {
         isFetching.current = false;
       });
+    } else if (!userId) {
+      setUnreadTotal(0);
+      setUnreadOffersTotal(0);
+      lastFetchedUserId.current = null;
     }
   }, [isInitialized, userId, refreshUnreadCount, refreshUnreadOffersCount]);
 
@@ -114,7 +108,13 @@ export const ChatProvider = ({ children }) => {
   }, []);
 
   return (
-    <ChatContext.Provider value={contextValue}>
+    <ChatContext.Provider value={{
+      unreadTotal,
+      updateUnreadTotal,
+      refreshUnreadCount,
+      unreadOffersTotal,
+      refreshUnreadOffersCount
+    }}>
       {children}
     </ChatContext.Provider>
   );

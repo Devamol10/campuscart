@@ -44,7 +44,7 @@ export const useSocket = () => {
 
           const isDev = import.meta.env.MODE === 'development';
           let backendUrl = import.meta.env.VITE_API_URL || 
-            (isDev ? "http://localhost:5000" : "https://campuscart-auwp.onrender.com");
+            (isDev ? "http://localhost:10000" : "https://campuscart-auwp.onrender.com");
             
           // Ensure Socket.io points to the root server, not the /api proxy path
           if (backendUrl === '/api') {

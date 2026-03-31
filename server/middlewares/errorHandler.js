@@ -1,4 +1,5 @@
 // CampusCart — errorHandler.js
+import logger from "../utils/logger.js";
 
 /**
  * Global Error Handler for Production
@@ -11,11 +12,10 @@ const errorHandler = (err, req, res, next) => {
 
   // Development Logging
   if (!isProd) {
-    console.error("DEBUG ERR:", {
-      message: err.message,
+    logger.error(`API Error: ${err.message}`, {
       stack: err.stack,
-      name: err.name,
-      code: err.code,
+      path: req.path,
+      method: req.method
     });
   }
 

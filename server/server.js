@@ -18,6 +18,7 @@ import searchRoutes from "./routes/searchRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import passport from "./config/passport.js";
 import { initSocket } from "./sockets/index.js";
+import logger from "./utils/logger.js";
 
 // env
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -82,7 +83,7 @@ const startServer = async () => {
 
     const allowedOrigins = isProd
       ? [process.env.CLIENT_URL]
-      : ["http://localhost:5173", "http://localhost:5174", process.env.CLIENT_URL];
+      : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5176", process.env.CLIENT_URL];
 
     const corsOptions = {
       origin: (origin, callback) => {
@@ -106,7 +107,9 @@ const startServer = async () => {
     app.use(passport.initialize());
 
     // Structured logging
-    app.use(morgan(isProd ? "combined" : "dev"));
+    app.use(morgan(isProd ? "combined" : "dev", {
+      stream: { write: (message) => logger.info(message.trim()) }
+    }));
 
     // health check
     app.get("/health", (req, res) => {
@@ -136,7 +139,7 @@ const startServer = async () => {
 
     if (process.env.NODE_ENV !== "test") {
       server.listen(PORT, "0.0.0.0", () => {
-        console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
+        logger.info(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
       });
     }
 

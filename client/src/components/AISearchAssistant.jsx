@@ -51,10 +51,6 @@ const AISearchAssistant = () => {
 
   // Hidden routes
   const hiddenRoutes = ['/set-password', '/create-password', '/login', '/register', '/auth/callback', '/chat'];
-  
-  if (hiddenRoutes.includes(location.pathname)) {
-    return null;
-  }
 
   // Load history on mount
   useEffect(() => {
@@ -154,6 +150,10 @@ const AISearchAssistant = () => {
     setError(null);
     if (inputRef.current) inputRef.current.focus();
   };
+
+  if (hiddenRoutes.includes(location.pathname)) {
+    return null;
+  }
 
   return (
     <div className={styles.floatingContainer}>
