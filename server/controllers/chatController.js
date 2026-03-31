@@ -91,19 +91,40 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: populatedConv });
 });
 
-// @desc    Get all conversations for logged-in user
+// @desc    Get all conversations for logged-in user with pagination and projection
 // @route   GET /api/chat/conversations
 // @access  Private
 export const getMyConversations = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const skip = (page - 1) * limit;
+
+  const total = await Conversation.countDocuments({
+    participants: req.user._id,
+    isActive: true,
+  });
+
   const conversations = await Conversation.find({
     participants: req.user._id,
     isActive: true,
   })
     .populate("participants", "name email avatar")
-    .populate("listing", "title price images")
-    .sort({ lastMessageAt: -1 });
+    .populate({
+      path: "listing",
+      select: "title price images",
+      // Only keep the first image to minimize payload size (Super Senior Optimization)
+      transform: (doc) => {
+        if (doc && doc.images && doc.images.length > 0) {
+          doc.images = [doc.images[0]];
+        }
+        return doc;
+      }
+    })
+    .sort({ lastMessageAt: -1 })
+    .skip(skip)
+    .limit(limit);
 
-  // Get unread counts per conversation
+  // Get unread counts per conversation in parallel
   const conversationsWithUnread = await Promise.all(
     conversations.map(async (convo) => {
       const unreadCount = await Message.countDocuments({
@@ -118,17 +139,30 @@ export const getMyConversations = asyncHandler(async (req, res) => {
     })
   );
 
-  res.status(200).json({ success: true, data: conversationsWithUnread });
+  res.status(200).json({ 
+    success: true, 
+    data: conversationsWithUnread,
+    pagination: {
+      total,
+      page,
+      pages: Math.ceil(total / limit)
+    }
+  });
 });
 
 // @desc    Get total unread messages count for the logged-in user
 // @route   GET /api/chat/unread-count
 // @access  Private
 export const getUnreadCount = asyncHandler(async (req, res) => {
+  // Use a targeted query to count strictly unread messages across all active conversations
   const conversations = await Conversation.find({
     participants: req.user._id,
     isActive: true,
   }).select("_id");
+
+  if (conversations.length === 0) {
+    return res.status(200).json({ success: true, count: 0 });
+  }
 
   const convoIds = conversations.map((c) => c._id);
 
