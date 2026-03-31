@@ -184,6 +184,7 @@ export const acceptOffer = asyncHandler(async (req, res) => {
 
   // Update offer status
   offer.status = "accepted";
+  offer.isReadByBuyer = false; // Mark unread for buyer since status changed
   await offer.save();
 
   // Update listing status
@@ -193,7 +194,7 @@ export const acceptOffer = asyncHandler(async (req, res) => {
   // Reject ALL other pending offers on the same listing
   await Offer.updateMany(
     { listing: listing._id, _id: { $ne: offerId } },
-    { status: "rejected" }
+    { status: "rejected", isReadByBuyer: false }
   );
 
   // --- BEGIN CHAT INTEGRATION ---
@@ -265,9 +266,48 @@ export const rejectOffer = asyncHandler(async (req, res) => {
   }
 
   offer.status = "rejected";
+  offer.isReadByBuyer = false; // Mark unread for buyer since status changed
   await offer.save();
 
   try { notifyOfferStatus(getIO(), offer.buyer, offer); } catch (e) {}
 
   res.status(200).json({ success: true, data: offer });
+});
+
+// @desc    Get total unread offers count for the user
+// @route   GET /api/offers/unread-count
+// @access  Private
+export const getUnreadOffersCount = asyncHandler(async (req, res) => {
+  // Sellers: New offers where isReadBySeller is false
+  const sellerUnread = await Offer.countDocuments({
+    seller: req.user._id,
+    isReadBySeller: false,
+  });
+
+  // Buyers: Status changes where isReadByBuyer is false
+  const buyerUnread = await Offer.countDocuments({
+    buyer: req.user._id,
+    isReadByBuyer: false,
+  });
+
+  res.status(200).json({ success: true, count: sellerUnread + buyerUnread });
+});
+
+// @desc    Mark all offers as read for the user
+// @route   PATCH /api/offers/mark-read
+// @access  Private
+export const markOffersAsRead = asyncHandler(async (req, res) => {
+  // Mark all offers where user is seller as read
+  await Offer.updateMany(
+    { seller: req.user._id, isReadBySeller: false },
+    { $set: { isReadBySeller: true } }
+  );
+
+  // Mark all offers where user is buyer as read
+  await Offer.updateMany(
+    { buyer: req.user._id, isReadByBuyer: false },
+    { $set: { isReadByBuyer: true } }
+  );
+
+  res.status(200).json({ success: true, message: "Offers marked as read" });
 });

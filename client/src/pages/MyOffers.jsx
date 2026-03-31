@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import { useChatContext } from '../context/ChatContext';
 import styles from './MyOffers.module.css';
 
 const MyOffers = () => {
@@ -9,7 +10,21 @@ const MyOffers = () => {
   const [sentOffers, setSentOffers] = useState([]);
   const [receivedOffers, setReceivedOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { refreshUnreadOffersCount } = useChatContext();
   const navigate = useNavigate();
+
+  // Clear unread notifications when page is visited
+  useEffect(() => {
+    const markAsRead = async () => {
+      try {
+        await api.patch('/offers/mark-read');
+        refreshUnreadOffersCount();
+      } catch (err) {
+        // silent error
+      }
+    };
+    markAsRead();
+  }, [refreshUnreadOffersCount]);
 
   useEffect(() => {
     fetchData();

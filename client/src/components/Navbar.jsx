@@ -6,7 +6,7 @@ import styles from './Navbar.module.css';
 
 const Navbar = ({ onSearch }) => {
   const { user, logout } = useAuth();
-  const { unreadTotal } = useChatContext();
+  const { unreadTotal, unreadOffersTotal } = useChatContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -82,6 +82,11 @@ const Navbar = ({ onSearch }) => {
                 {item.path === '/chat' && unreadTotal > 0 && (
                   <span className={styles.navBadge}>
                     {unreadTotal > 9 ? '9+' : unreadTotal}
+                  </span>
+                )}
+                {item.path === '/my-offers' && unreadOffersTotal > 0 && (
+                  <span className={styles.navBadge}>
+                    {unreadOffersTotal > 9 ? '9+' : unreadOffersTotal}
                   </span>
                 )}
               </Link>
@@ -165,6 +170,11 @@ const Navbar = ({ onSearch }) => {
               {item.path === '/chat' && unreadTotal > 0 && (
                 <span className={styles.mobileNavBadge}>
                   {unreadTotal > 9 ? '9+' : unreadTotal}
+                </span>
+              )}
+              {item.path === '/my-offers' && unreadOffersTotal > 0 && (
+                <span className={styles.mobileNavBadge}>
+                  {unreadOffersTotal > 9 ? '9+' : unreadOffersTotal}
                 </span>
               )}
             </div>

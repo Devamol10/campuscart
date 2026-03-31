@@ -11,6 +11,7 @@ export const ChatProvider = ({ children }) => {
   const { user } = useAuth();
   const { socket, connected } = useSocket();
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [unreadOffersTotal, setUnreadOffersTotal] = useState(0);
 
   const refreshUnreadCount = useCallback(async () => {
     if (!user) {
@@ -27,10 +28,26 @@ export const ChatProvider = ({ children }) => {
     }
   }, [user]);
 
+  const refreshUnreadOffersCount = useCallback(async () => {
+    if (!user) {
+      setUnreadOffersTotal(0);
+      return;
+    }
+    try {
+      const res = await api.get('/offers/unread-count');
+      if (res.data?.success) {
+        setUnreadOffersTotal(res.data.count || 0);
+      }
+    } catch (error) {
+      // ignore
+    }
+  }, [user]);
+
   // Initial fetch on mount or login
   useEffect(() => {
     refreshUnreadCount();
-  }, [refreshUnreadCount]);
+    refreshUnreadOffersCount();
+  }, [refreshUnreadCount, refreshUnreadOffersCount]);
 
   // Global Sync via Sockets
   useEffect(() => {
@@ -54,21 +71,39 @@ export const ChatProvider = ({ children }) => {
       }
     };
 
+    const handleOfferReceived = () => {
+        setUnreadOffersTotal((prev) => prev + 1);
+    };
+
+    const handleOfferStatusChanged = () => {
+        setUnreadOffersTotal((prev) => prev + 1);
+    };
+
     socket.on('newMessage', handleNewMessage);
     socket.on('messagesRead', handleReadSync);
+    socket.on('offerReceived', handleOfferReceived);
+    socket.on('offerStatusChanged', handleOfferStatusChanged);
 
     return () => {
       socket.off('newMessage', handleNewMessage);
       socket.off('messagesRead', handleReadSync);
+      socket.off('offerReceived', handleOfferReceived);
+      socket.off('offerStatusChanged', handleOfferStatusChanged);
     };
-  }, [socket, connected, user, refreshUnreadCount]);
+  }, [socket, connected, user, refreshUnreadCount, refreshUnreadOffersCount]);
 
   const updateUnreadTotal = useCallback((count) => {
     setUnreadTotal(typeof count === 'number' ? count : 0);
   }, []);
 
   return (
-    <ChatContext.Provider value={{ unreadTotal, updateUnreadTotal, refreshUnreadCount }}>
+    <ChatContext.Provider value={{ 
+        unreadTotal, 
+        updateUnreadTotal, 
+        refreshUnreadCount,
+        unreadOffersTotal,
+        refreshUnreadOffersCount
+    }}>
       {children}
     </ChatContext.Provider>
   );

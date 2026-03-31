@@ -35,6 +35,14 @@ const offerSchema = new mongoose.Schema(
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
     },
+    isReadBySeller: {
+      type: Boolean,
+      default: false,
+    },
+    isReadByBuyer: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
