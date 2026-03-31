@@ -86,7 +86,7 @@ const Home = () => {
         }}
       />
 
-      {/* ── Hero Section ── */}
+      {/* Hero Section */}
       {!isFiltering && !loading && (
         <section className={styles.hero}>
           <div className={styles.heroInner}>
@@ -100,7 +100,7 @@ const Home = () => {
               </h1>
               <p className={styles.heroSubtitle}>
                 The trusted peer-to-peer marketplace for students. Find textbooks,
-                electronics, and more — all from verified campus members.
+                electronics, and more from verified campus members.
               </p>
               <div className={styles.heroActions}>
                 <Link to="/add-item" className={styles.heroPrimary}>
@@ -113,7 +113,7 @@ const Home = () => {
               <div className={styles.heroStats}>
                 <div className={styles.heroStat}>
                   <span className={styles.heroStatNum}>{listings.length}</span>
-                  <span className={styles.heroStatLabel}>Active Listings</span>
+                  <span className={styles.heroStatLabel}>Marketplace Items</span>
                 </div>
                 <div className={styles.heroStatDivider} />
                 <div className={styles.heroStat}>
@@ -126,7 +126,7 @@ const Home = () => {
         </section>
       )}
 
-      {/* ── Main Content ── */}
+      {/* Main Content */}
       <main className={styles.main} id="listings">
         {loading ? (
           <div className={styles.stateBox}>

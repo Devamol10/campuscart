@@ -124,7 +124,7 @@ function DashboardPlaceholder() {
             textTransform: "uppercase",
           }}
         >
-          Dashboard UI — Phase 1 coming soon
+          Dashboard UI . Phase 1 coming soon
         </p>
       </div>
     </div>

@@ -46,8 +46,8 @@ function MarketplacePlaceholder() {
             marginBottom: "2rem",
           }}
         >
-          A campus-centric peer-to-peer marketplace where students buy, sell,
-          and trade textbooks, electronics, lab gear, and more — safely within
+          A campus centric peer to peer marketplace where students buy, sell,
+          and trade textbooks, electronics, lab gear, and more safely within
           their campus community.
         </p>
 
