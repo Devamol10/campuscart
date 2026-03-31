@@ -1,6 +1,6 @@
 // CampusCart — ChatContext.jsx
 // Lightweight context for cross-component chat state (e.g. unread badge on Navbar)
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useContext, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useSocket } from '../hooks/useSocket';
 import api from '../services/api';
@@ -13,8 +13,12 @@ export const ChatProvider = ({ children }) => {
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [unreadOffersTotal, setUnreadOffersTotal] = useState(0);
 
+  // Track the current user ID to prevent redundant initial fetches
+  const userId = user?.userId || user?._id;
+  const lastFetchedUserId = useRef(null);
+
   const refreshUnreadCount = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setUnreadTotal(0);
       return;
     }
@@ -26,10 +30,10 @@ export const ChatProvider = ({ children }) => {
     } catch (error) {
       // ignore
     }
-  }, [user]);
+  }, [userId]);
 
   const refreshUnreadOffersCount = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setUnreadOffersTotal(0);
       return;
     }
@@ -41,32 +45,37 @@ export const ChatProvider = ({ children }) => {
     } catch (error) {
       // ignore
     }
-  }, [user]);
+  }, [userId]);
 
-  // Initial fetch on mount or login
+  // Initial fetch on mount or when user ID changes
   useEffect(() => {
-    refreshUnreadCount();
-    refreshUnreadOffersCount();
-  }, [refreshUnreadCount, refreshUnreadOffersCount]);
+    if (userId && userId !== lastFetchedUserId.current) {
+      refreshUnreadCount();
+      refreshUnreadOffersCount();
+      lastFetchedUserId.current = userId;
+    } else if (!userId) {
+      setUnreadTotal(0);
+      setUnreadOffersTotal(0);
+      lastFetchedUserId.current = null;
+    }
+  }, [userId, refreshUnreadCount, refreshUnreadOffersCount]);
 
   // Global Sync via Sockets
   useEffect(() => {
-    if (!socket || !connected || !user) return;
+    if (!socket || !connected || !userId) return;
 
     const handleNewMessage = (msg) => {
       const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
-      const myId = user.userId || user._id;
-
+      
       // Increment if message is from someone else
-      if (String(senderId) !== String(myId)) {
+      if (String(senderId) !== String(userId)) {
         setUnreadTotal((prev) => prev + 1);
       }
     };
 
     const handleReadSync = ({ readBy }) => {
-      const myId = user.userId || user._id;
       // If I am the one who read messages (in another tab or current tab), refresh total
-      if (String(readBy) === String(myId)) {
+      if (String(readBy) === String(userId)) {
         refreshUnreadCount();
       }
     };
@@ -90,7 +99,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('offerReceived', handleOfferReceived);
       socket.off('offerStatusChanged', handleOfferStatusChanged);
     };
-  }, [socket, connected, user, refreshUnreadCount, refreshUnreadOffersCount]);
+  }, [socket, connected, userId, refreshUnreadCount, refreshUnreadOffersCount]);
 
   const updateUnreadTotal = useCallback((count) => {
     setUnreadTotal(typeof count === 'number' ? count : 0);
