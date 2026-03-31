@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../hooks/useChat';
@@ -38,6 +38,7 @@ const Chat = () => {
   const [convoError, setConvoError] = useState(null);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const {
     messages,
@@ -489,6 +490,25 @@ const Chat = () => {
                                 <span>Offer</span>
                               </div>
                               <div className={styles.offerText}>{msg.text}</div>
+                              {activeConvo.listing && (
+                                <div 
+                                  className={styles.offerListingPreview}
+                                  onClick={() => navigate(`/listing/${activeConvo.listing._id}`)}
+                                >
+                                  {activeConvo.listing.images?.[0]?.url && (
+                                    <img 
+                                      src={activeConvo.listing.images[0].url} 
+                                      alt="Product" 
+                                      className={styles.offerListingImg}
+                                    />
+                                  )}
+                                  <div className={styles.offerListingDetails}>
+                                    <span className={styles.offerListingTitle}>
+                                      📦 {activeConvo.listing.title}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <p className={styles.msgText}>{msg.text}</p>

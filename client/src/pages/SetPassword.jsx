@@ -57,6 +57,8 @@ const SetPassword = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
 
   /* ── Submit password ── */
   const handleSubmit = async (e) => {
@@ -76,12 +78,19 @@ const SetPassword = () => {
     try {
       const res = await api.post("/auth/set-password", { token, password });
       if (res.data?.success) {
+        setSuccess(true);
         // Save access token and update auth state before navigating
         if (res.data.token) {
           localStorage.setItem("token", res.data.token);
         }
         await fetchUser();
-        window.location.href = "/";
+        
+        // Brief delay for the user to see the success state
+        setTimeout(() => {
+          navigate("/", { replace: true });
+          // Fallback for strict state clearing
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
       } else {
         setFormError(res.data?.message || "Failed to set password.");
         setSubmitting(false);
@@ -234,6 +243,8 @@ const SetPassword = () => {
                       <Spinner />
                       Setting password…
                     </>
+                  ) : success ? (
+                    "Redirecting to Home..."
                   ) : (
                     "Set Password"
                   )}
@@ -241,6 +252,23 @@ const SetPassword = () => {
               </form>
             </>
           )}
+
+          {/* ── Success Message ── */}
+          {success && (
+            <div style={{
+              marginTop: "1.5rem",
+              padding: "1rem",
+              background: "rgba(34, 197, 94, 0.1)",
+              border: "1px solid rgba(34, 197, 94, 0.2)",
+              borderRadius: "8px",
+              color: "#22c55e",
+              textAlign: "center",
+              fontWeight: "600"
+            }}>
+              ✨ Password set successfully! Logging you in...
+            </div>
+          )}
+
 
         </div>
       </div>

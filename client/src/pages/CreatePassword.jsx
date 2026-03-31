@@ -33,6 +33,8 @@ const CreatePassword = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
 
   /* ── Invalid link guard ── */
   if (!token) {
@@ -73,20 +75,22 @@ const CreatePassword = () => {
     try {
       const res = await api.post('/auth/set-password', { token, password });
       if (res.data?.success) {
+        setSuccess(true);
         // Save access token and update auth state before navigating
         if (res.data.token) {
           localStorage.setItem('token', res.data.token);
         }
-        // Wait for fetchUser to fully resolve and confirm user is set
-        const userData = await fetchUser();
-        if (userData) {
-          // Allow React state to fully flush before navigating
-          await new Promise(resolve => setTimeout(resolve, 100));
-          window.location.href = "/";
-        } else {
-          // fetchUser didn't return user data — fallback: redirect via window
-          window.location.href = '/';
-        }
+        // Refresh the global auth state
+        await fetchUser();
+        
+        // Wait 1.5 seconds for visual success feedback
+        setTimeout(() => {
+          navigate("/", { replace: true });
+          // Hard push if React Router redirect is blocked
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
+        }, 1500);
       } else {
         setError(res.data?.message || 'Failed to set password.');
         setLoading(false);
@@ -201,11 +205,31 @@ const CreatePassword = () => {
                   <Spinner />
                   Setting password…
                 </>
+              ) : success ? (
+                "Logging you in..."
               ) : (
                 'Set Password'
               )}
             </button>
           </form>
+
+          {/* ── Success Feedback ── */}
+          {success && (
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              background: 'rgba(34, 197, 94, 0.1)',
+              border: '1px solid rgba(34, 197, 94, 0.2)',
+              borderRadius: '8px',
+              color: '#22c55e',
+              textAlign: 'center',
+              fontWeight: '600',
+              animation: 'fadeIn 0.5s ease-out'
+            }}>
+              ✨ Welcome! Password set successfully. Redirecting...
+            </div>
+          )}
+          <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }`}</style>
         </div>
       </div>
     </div>

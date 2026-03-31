@@ -28,25 +28,37 @@ export const smartSearch = async (req, res, next) => {
       return res.status(200).json(searchCache.get(cacheKey));
     }
 
-// ── Optimized AI Prompt ─────────────────────────────
-    const validCategories = ["electronics", "books", "furniture", "sports", "stationery", "lab equipment"];
+// ── Optimized AI Prompt (Human-like Training) ─────────────────────────────
+    const validCategories = ["Electronics", "Stationery", "Books", "Lab Equipment", "Furniture", "Sports", "Clothing", "Other"];
     
-    const prompt = `You are an API that ONLY returns valid JSON.
+    const prompt = `### Role:
+You are the Expert AI Retrieval Assistant for CampusCart, a student marketplace. Your job is to extract search intent from unstructured queries.
 
-Extract filters from this query: "${sanitizedQuery}"
+### Context:
+Students search for items to buy/sell. We use these categories: ${validCategories.join(', ')}.
 
-Return STRICT JSON:
+### Query to Process:
+"${sanitizedQuery}"
+
+### Training Examples (Few-Shot):
+* User: "I need a hoodie and t-shirt" -> {"category": "Clothing", "keywords": ["hoodie", "t-shirt"], "priceRange": {"min": 0, "max": 0}}
+* User: "Looking for a cheap desk for 500" -> {"category": "Furniture", "keywords": ["desk"], "priceRange": {"min": 0, "max": 500}}
+* User: "Engineering books 4th sem" -> {"category": "Books", "keywords": ["engineering", "4th", "sem"], "priceRange": {"min": 0, "max": 0}}
+* User: "Scientific calculator" -> {"category": "Electronics", "keywords": ["calculator"], "priceRange": {"min": 0, "max": 0}}
+
+### Extraction Rules:
+1. Return ONLY a valid JSON object. No Markdown.
+2. Infer the intended "category" from my list. If ambiguous, pick "Other".
+3. Extract specific product "keywords". Ignore common filler words.
+4. If the user mentions a budget, accurately fill "priceRange.max".
+5. Do NOT return null values; use defaults.
+
+### Return JSON format:
 {
-"category": "${validCategories.join(" | ")}",
-"keywords": [],
-"priceRange": { "min": 0, "max": 0 }
-}
-
-Rules:
-* Do NOT return null values
-* Always infer category from the provided list
-* Do NOT add explanation or extra text
-* Only return JSON`;
+"category": "String",
+"keywords": ["String"],
+"priceRange": { "min": Number, "max": Number }
+}`;
 
     const aiText = await generateAIResponse(prompt);
 
@@ -69,24 +81,32 @@ Rules:
       
       parsed = JSON.parse(finalJson);
       
-      // Category Normalization & Validation
+      // Category Normalization & Validation (Case-Insensitive)
       if (parsed.category) {
-        parsed.category = String(parsed.category).toLowerCase().trim();
-        // Strict mapping check
-        if (!validCategories.includes(parsed.category)) {
-          // Attempt to find a partial match or default
-          const found = validCategories.find(c => parsed.category.includes(c));
-          parsed.category = found || "electronics";
-        }
+        const found = validCategories.find(c => 
+          c.toLowerCase() === String(parsed.category).toLowerCase().trim() ||
+          String(parsed.category).toLowerCase().includes(c.toLowerCase())
+        );
+        parsed.category = found || "Other";
       } else {
-        parsed.category = "electronics";
+        parsed.category = "Other";
       }
 
       // Ensure keywords is an array of strings
       if (!Array.isArray(parsed.keywords)) {
         parsed.keywords = [];
       } else {
-        parsed.keywords = parsed.keywords.filter(k => typeof k === "string" && k.length > 0);
+        parsed.keywords = parsed.keywords
+          .filter(k => typeof k === "string" && k.length > 0)
+          .map(k => k.toLowerCase().trim());
+      }
+
+      // Price Range cleanup
+      if (parsed.priceRange) {
+        if (typeof parsed.priceRange.max !== 'number') parsed.priceRange.max = 0;
+        if (typeof parsed.priceRange.min !== 'number') parsed.priceRange.min = 0;
+      } else {
+        parsed.priceRange = { min: 0, max: 0 };
       }
 
     } catch (parseError) {

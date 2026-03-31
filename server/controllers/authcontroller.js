@@ -73,40 +73,49 @@ export const requestVerification = asyncHandler(async (req, res) => {
   const baseUrl = process.env.BASE_URL || "http://localhost:5000";
   const verificationUrl = `${baseUrl}/api/auth/verify/${rawToken}`;
 
-  await sendEmail({
-    to: normalizedEmail,
-    subject: "Verify Your Email",
-    html: `
-  <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px;">
-    <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center;">
-      
-      <h2 style="color: #333; margin-bottom: 10px;">Email Verification</h2>
-      
-      <p style="color: #555; font-size: 14px; margin-bottom: 25px;">
-        Please click the button below to verify your email address.
-      </p>
+  try {
+    await sendEmail({
+      to: normalizedEmail,
+      subject: "Verify Your Email",
+      html: `
+    <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 40px 20px;">
+      <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center;">
+        
+        <h2 style="color: #333; margin-bottom: 10px;">Email Verification</h2>
+        
+        <p style="color: #555; font-size: 14px; margin-bottom: 25px;">
+          Please click the button below to verify your email address.
+        </p>
 
-      <a href="${verificationUrl}" 
-         style="display: inline-block; padding: 12px 25px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
-        Verify Email
-      </a>
+        <a href="${verificationUrl}" 
+           style="display: inline-block; padding: 12px 25px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+          Verify Email
+        </a>
 
-      <p style="color: #888; font-size: 12px; margin-top: 25px;">
-        This link expires in 7 minutes.
-      </p>
+        <p style="color: #888; font-size: 12px; margin-top: 25px;">
+          This link expires in 7 minutes.
+        </p>
 
-      <hr style="margin: 25px 0; border: none; border-top: 1px solid #eee;" />
+        <hr style="margin: 25px 0; border: none; border-top: 1px solid #eee;" />
 
-      <p style="color: #aaa; font-size: 11px;">
-        If you did not request this, you can safely ignore this email.
-      </p>
+        <p style="color: #aaa; font-size: 11px;">
+          If you did not request this, you can safely ignore this email.
+        </p>
 
+      </div>
     </div>
-  </div>
-`,
-  });
+  `,
+    });
+  } catch (emailError) {
+    console.error("Critical Email Error:", emailError.message);
+    return res.status(503).json({
+      success: false,
+      message: "Email service temporarily unavailable. Please try again later."
+    });
+  }
 
   res.status(200).json({
+    success: true,
     message: "Verification email sent",
   });
 });
