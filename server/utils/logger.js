@@ -37,15 +37,13 @@ const logger = winston.createLogger({
   ],
 });
 
-// 🚀 If not in production, also log to the console with colors
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: combine(
-      colorize(),
-      timestamp({ format: 'HH:mm:ss' }),
-      logFormat
-    ),
-  }));
-}
+// 🚀 Add console transport for all environments to ensure logs appear in cloud dashboards
+logger.add(new winston.transports.Console({
+  format: combine(
+    colorize({ all: process.env.NODE_ENV !== 'production' }), // Colors only in dev
+    timestamp({ format: 'HH:mm:ss' }),
+    logFormat
+  ),
+}));
 
 export default logger;
