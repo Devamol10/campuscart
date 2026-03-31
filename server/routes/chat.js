@@ -3,6 +3,8 @@ import {
   getMessages,
   sendMessage,
   getUnreadCount,
+  getOrCreateConversation,
+  getMyConversations,
 } from "../controllers/chatController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
