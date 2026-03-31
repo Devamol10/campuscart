@@ -314,11 +314,18 @@
   }
   
   .heroStatDivider {
-    width: 60%;
+    width: 40%;
     height: 1px;
+    background: rgba(108, 99, 255, 0.2);
   }
   
   .main {
-    padding: 2rem 1rem;
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .heroTitle {
+    font-size: 2.25rem;
   }
 }

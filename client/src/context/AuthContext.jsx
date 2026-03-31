@@ -33,7 +33,13 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       const msg = error.response?.data?.message || error.message;
-      console.error("Auth check error:", msg);
+      
+      if (msg === "AUTH_DEACTIVATED") {
+        console.warn("Auth check halted: Interceptor deactivated due to refresh failure.");
+      } else {
+        console.error("Auth check error:", msg);
+      }
+      
       setUser(null);
       return null;
     } finally {

@@ -45,15 +45,26 @@ export const getListings = asyncHandler(async (req, res) => {
 
   const [listings, total] = await Promise.all([
     Listing.find(filter)
-      .populate("sellerId", "email")
+      .select("title price category condition status createdAt images sellerId")
+      .populate("sellerId", "name email")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNum),
+      .limit(limitNum)
+      .lean(),
     Listing.countDocuments(filter),
   ]);
 
+  // Transform: only send the first image as a thumbnail for the grid view
+  const optimizedListings = listings.map(l => {
+    const { images, ...rest } = l;
+    return {
+      ...rest,
+      thumbnail: images && images.length > 0 ? images[0] : null
+    };
+  });
+
   res.status(200).json({
-    listings,
+    listings: optimizedListings,
     page: pageNum,
     totalPages: Math.ceil(total / limitNum),
     totalListings: total,
@@ -65,10 +76,21 @@ export const getListings = asyncHandler(async (req, res) => {
  * Private — get all listings belonging to the authenticated user.
  */
 export const getMyListings = asyncHandler(async (req, res) => {
-  const listings = await Listing.find({ sellerId: req.userId })
-    .sort({ createdAt: -1 });
+  const listings = await Listing.find({ sellerId: req.user?._id || req.userId })
+    .select("title price category condition status createdAt images")
+    .sort({ createdAt: -1 })
+    .lean();
 
-  res.status(200).json(listings);
+  // Optimized for list view
+  const optimized = listings.map(l => {
+    const { images, ...rest } = l;
+    return {
+      ...rest,
+      thumbnail: images && images.length > 0 ? images[0] : null
+    };
+  });
+
+  res.status(200).json(optimized);
 });
 
 /**

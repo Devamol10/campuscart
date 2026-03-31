@@ -27,6 +27,7 @@ const AUTH_PATHS = [
 
 
 let isRefreshing = false;
+let isAuthDeactivated = false; // Prevents infinite loops after definitive refresh failure
 let failedQueue = [];
 
 
@@ -65,14 +66,21 @@ refreshChannel.onmessage = (event) => {
     isRefreshing = true;
   } else if (event.data?.type === "REFRESH_SUCCESS") {
     isRefreshing = false;
+    isAuthDeactivated = false;
     processQueue(null, event.data.token);
   } else if (event.data?.type === "REFRESH_ERROR") {
     isRefreshing = false;
+    isAuthDeactivated = true; 
     processQueue(event.data.error, null);
   }
 };
 
 api.interceptors.request.use(async (config) => {
+  // ⛔ HARD STOP: If auth has permanently failed, block all further requests to prevent server logs bloat
+  if (isAuthDeactivated && !config.url?.includes("/auth/refresh") && !config.url?.includes("/auth/login")) {
+    return Promise.reject(new Error("AUTH_DEACTIVATED"));
+  }
+
   if (isDev) {
     console.groupCollapsed(`🚀 [API Request] ${config.method.toUpperCase()} ${config.url}`);
     console.log('Headers:', config.headers);
@@ -82,6 +90,7 @@ api.interceptors.request.use(async (config) => {
 
   let token = localStorage.getItem("token");
 
+  // Proactive Refresh: If token exists but expires in < 2 mins
   if (token && !config._skipRefresh) {
     const decoded = parseJwt(token);
     if (decoded && decoded.exp && (decoded.exp * 1000) - Date.now() < 120 * 1000) {
@@ -98,11 +107,13 @@ api.interceptors.request.use(async (config) => {
             localStorage.setItem("token", newToken);
             token = newToken;
             isRefreshing = false;
+            isAuthDeactivated = false;
 
             refreshChannel.postMessage({ type: "REFRESH_SUCCESS", token: newToken });
             processQueue(null, newToken);
           }
         } catch (error) {
+          isAuthDeactivated = true;
           refreshChannel.postMessage({ type: "REFRESH_ERROR", error });
           processQueue(error, null);
           localStorage.removeItem("token");
@@ -204,12 +215,14 @@ api.interceptors.response.use(
           localStorage.setItem("token", newToken);
           originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          isAuthDeactivated = false; 
           refreshChannel.postMessage({ type: "REFRESH_SUCCESS", token: newToken });
         }
 
         processQueue(null, newToken);
         return api(originalRequest);
       } catch (refreshError) {
+        isAuthDeactivated = true; 
         refreshChannel.postMessage({ type: "REFRESH_ERROR", error: refreshError });
         processQueue(refreshError, null);
 

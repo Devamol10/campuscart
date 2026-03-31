@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import styles from './ProductCard.module.css';
 
 const ProductCard = ({ product, onDelete }) => {
-  const imgSrc = product.images?.[0]?.url || product.imageUrl || product.image || null;
+  const imgSrc = product.thumbnail?.url || product.images?.[0]?.url || product.imageUrl || product.image || null;
+  const sellerName = product.sellerId?.name || product.sellerName || 'Student';
 
   const timeAgo = (date) => {
     if (!date) return '';
@@ -50,9 +51,9 @@ const ProductCard = ({ product, onDelete }) => {
           <div className={styles.footer}>
             <div className={styles.seller}>
               <div className={styles.sellerAvatar}>
-                {product.sellerName?.charAt(0)?.toUpperCase() || 'S'}
+                {sellerName.charAt(0).toUpperCase()}
               </div>
-              <span className={styles.sellerName}>{product.sellerName || 'Student'}</span>
+              <span className={styles.sellerName}>{sellerName}</span>
             </div>
             <span className={styles.timeAgo}>{timeAgo(product.createdAt)}</span>
           </div>

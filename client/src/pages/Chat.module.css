@@ -22,6 +22,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebarHeader {
@@ -273,6 +274,7 @@
   background-size: 24px 24px;
   position: relative;
   min-width: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* No Chat Selected State */
@@ -839,24 +841,25 @@
    Responsive — Mobile
    ═══════════════════════════════════════ */
 @media (max-width: 768px) {
+  .chatApp {
+    width: 200%; /* Side by side container */
+    display: flex;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   .sidebar {
-    width: 100%;
-    min-width: 100%;
+    width: 50%;
+    min-width: 50%;
+    border-right: none;
   }
 
   .chatMain {
-    display: none;
-    position: absolute;
-    inset: 0;
-    z-index: 20;
+    width: 50%;
+    min-width: 50%;
   }
 
-  .showChat .sidebar {
-    display: none;
-  }
-
-  .showChat .chatMain {
-    display: flex;
+  .showChat {
+    transform: translateX(-50%);
   }
 
   .backBtn {

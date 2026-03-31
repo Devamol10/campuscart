@@ -11,6 +11,7 @@ const Navbar = ({ onSearch }) => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const profileRef = useRef(null);
 
   // Close profile dropdown on outside click
@@ -28,6 +29,7 @@ const Navbar = ({ onSearch }) => {
   useEffect(() => {
     setMobileOpen(false);
     setProfileOpen(false);
+    setShowMobileSearch(false);
   }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
@@ -138,24 +140,56 @@ const Navbar = ({ onSearch }) => {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className={styles.mobileMenuBtn}
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M18 6L6 18M6 6l12 12" />
+          {/* Mobile Actions */}
+          <div className={styles.mobileActions}>
+            <button
+              className={styles.mobileSearchBtn}
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              aria-label="Toggle search"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M3 12h18M3 6h18M3 18h18" />
-              </svg>
-            )}
-          </button>
+            </button>
+
+            <button
+              className={styles.mobileMenuBtn}
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M3 12h18M3 6h18M3 18h18" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </nav>
+
+      {/* Mobile Search Overlay */}
+      <div className={`${styles.mobileSearchOverlay} ${showMobileSearch ? styles.active : ''}`}>
+        <div className={styles.mobileSearchInputContainer}>
+          <input
+            type="text"
+            className={styles.mobileSearchInput}
+            placeholder="Search items..."
+            autoFocus={showMobileSearch}
+            onChange={(e) => onSearch && onSearch(e.target.value)}
+          />
+          <button 
+            className={styles.mobileSearchClose}
+            onClick={() => setShowMobileSearch(false)}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
 
       {/* Mobile Navigation Overlay */}
       <div className={`${styles.mobileNav} ${mobileOpen ? styles.open : ''}`}>

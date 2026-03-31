@@ -246,3 +246,66 @@
   color: #ef4444;
   transform: scale(1.02);
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .content {
+    padding: 1rem;
+    gap: 0.4rem;
+  }
+
+  .title {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .price {
+    font-size: 1.1rem;
+  }
+
+  .category {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .footer {
+    padding-top: 0.75rem;
+  }
+
+  .sellerName {
+    font-size: 0.75rem;
+  }
+
+  .timeAgo {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    border-radius: 16px;
+  }
+  
+  .card::after {
+    border-radius: 16px;
+  }
+
+  .content {
+    padding: 0.85rem;
+  }
+
+  .title {
+    font-size: 0.9rem;
+  }
+
+  .price {
+    font-size: 1.05rem;
+  }
+  
+  .conditionBadge {
+    top: 10px;
+    left: 10px;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+}

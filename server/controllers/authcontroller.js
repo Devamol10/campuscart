@@ -314,15 +314,19 @@ export const refreshToken = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken;
 
   if (!token) {
+    clearAuthCookies(res);
     return res.status(401).json({
-      message: "Refresh token missing",
+      success: false,
+      message: "REFRESH_TOKEN_MISSING",
     });
   }
 
   const hashedToken = hashRefreshToken(token);
   if (!hashedToken) {
+    clearAuthCookies(res);
     return res.status(401).json({
-      message: "Invalid refresh token format",
+      success: false,
+      message: "INVALID_REFRESH_TOKEN",
     });
   }
 
@@ -349,7 +353,8 @@ export const refreshToken = asyncHandler(async (req, res) => {
   if (!storedToken || storedToken.replacedBy || storedToken.expiresAt < new Date() || !storedToken.user) {
     clearAuthCookies(res);
     return res.status(403).json({
-      message: "Invalid or expired session. Please login again.",
+      success: false,
+      message: "REFRESH_TOKEN_EXPIRED", // Or invalidated
     });
   }
 
