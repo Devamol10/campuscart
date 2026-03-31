@@ -86,11 +86,14 @@ const SetPassword = () => {
         await fetchUser();
         
         // Brief delay for the user to see the success state
+        // Brief delay for the user to see the success state
         setTimeout(() => {
           navigate("/", { replace: true });
           // Fallback for strict state clearing
           if (window.location.pathname !== "/") {
             window.location.href = "/";
+          }
+        }, 1500);
       } else {
         setFormError(res.data?.message || "Failed to set password.");
         setSubmitting(false);
