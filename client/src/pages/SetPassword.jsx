@@ -86,7 +86,6 @@ const SetPassword = () => {
         await fetchUser();
         
         // Brief delay for the user to see the success state
-        // Brief delay for the user to see the success state
         setTimeout(() => {
           navigate("/", { replace: true });
           // Fallback for strict state clearing
