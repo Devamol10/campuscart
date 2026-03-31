@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import api from "../services/api";
+import api, { resetAuthDeactivation } from "../services/api";
 import { disconnectSocket } from "../hooks/useSocket";
 
 const AuthContext = createContext(null);
@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (res.data && typeof res.data === 'object' && res.data.success) {
+        resetAuthDeactivation(); // Ensure intercepter is active
         setUser(res.data.data);
         return res.data.data;
       } else {
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }) => {
   }, [fetchUser]);
 
   const login = async (email, password) => {
+    resetAuthDeactivation(); // Reset deactivation before login attempt
     const res = await api.post("/auth/login", { email, password });
     if (res.data && res.data.success) {
       if (res.data.token) {
@@ -75,6 +77,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       localStorage.removeItem("token");
       disconnectSocket();
+      resetAuthDeactivation(); // Reset for the next session
       setUser(null);
       setLoading(false);
       // Hard redirect to clear all React state and memory

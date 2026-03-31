@@ -30,9 +30,17 @@ let isRefreshing = false;
 let isAuthDeactivated = false; // Prevents infinite loops after definitive refresh failure
 let failedQueue = [];
 
+/**
+ * 🛠️ Reset Auth Deactivation
+ * Call this from AuthContext on login/logout to clear the circuit breaker.
+ */
+export function resetAuthDeactivation() {
+  isAuthDeactivated = false;
+  isRefreshing = false;
+  failedQueue = [];
+}
 
-
-const processQueue = (error, token = null) => {
+function processQueue(error, token = null) {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -42,9 +50,9 @@ const processQueue = (error, token = null) => {
   });
 
   failedQueue = [];
-};
+}
 
-const parseJwt = (token) => {
+function parseJwt(token) {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -56,12 +64,15 @@ const parseJwt = (token) => {
   } catch (error) {
     return null;
   }
-};
+}
 
 // Cross-tab synchronization
 const refreshChannel = new BroadcastChannel("auth_refresh_channel");
 
 refreshChannel.onmessage = (event) => {
+  // Safety: If script is half-initialized, ignore early messages
+  if (typeof isRefreshing === 'undefined') return;
+
   if (event.data?.type === "REFRESH_STARTED") {
     isRefreshing = true;
   } else if (event.data?.type === "REFRESH_SUCCESS") {
