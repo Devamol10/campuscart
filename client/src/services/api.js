@@ -4,7 +4,7 @@ import axios from "axios";
 // In production (built), use VITE_API_URL directly.
 const isDev = import.meta.env.MODE === 'development';
 const VITE_API_URL = import.meta.env.VITE_API_URL;
-const PRODUCTION_API_URL = "https://campuscart-auwp.onrender.com";
+const PRODUCTION_API_URL = "https://url-shortener-api-9ucd.onrender.com";
 
 const BASE_URL = isDev
   ? '/api'
