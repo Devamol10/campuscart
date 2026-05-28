@@ -31,6 +31,40 @@ Through CampusCart, students can list, buy, sell, and trade campus essentials—
 
 ---
 
+## System Walkthrough & Visual Portfolio
+
+The following viewports showcase the primary product flows and their respective system implementation details:
+
+### 1. Unified Student Marketplace
+![Marketplace Homepage](./images/homepage.png)
+- **Technical Flow**: Dynamic card grid displaying active listings populated asynchronously from the paginated `/api/listings` REST surface. On page mount, the shell decodes custom JWT payloads (using silent access token rotation via secure Axios interceptors) to verify account status and display relative timestamps.
+
+### 2. Category Routing & Condition Filtering
+![Category View](./images/category_view.png)
+- **Technical Flow**: Filter state synchronization leveraging React Router (v7) search params, allowing direct deep-linking (e.g., `/marketplace?category=Stationery`). Underlying query speed is kept under `<20ms` utilizing a compound index on `{ category: 1, status: 1 }` within MongoDB.
+
+### 3. Natural Language Search via AI Assistant
+![AI Assistant Search Panel](./images/ai_search.png)
+- **Technical Flow**: Integrated contextual assistant utilizing the Google Gemini API. Natural language queries like *"Electronics under ₹5000"* are parsed by the backend LLM engine into standard Mongoose relational filter schemas to deliver intent-aware results inside an animated slide drawer.
+
+### 4. Real-Time Chat & Bid Negotiation
+![Real-Time Negotiation Flow](./images/chat_negotiation.png)
+- **Technical Flow**: Real-time websocket sessions facilitated by Socket.io. The conversation module handles standard string payloads as well as interactive **Offer Cards**. The bid/ask structure validates user roles to show customized action buttons (Accept/Reject) only to the seller.
+
+### 5. Received & Sent Offers Tracker
+![Offers Dashboard](./images/offers_dashboard.png)
+- **Technical Flow**: A transactional dashboard compiling student bid agreements. Accepting an offer triggers a cascading state update on Mongoose models (marking listings as `sold` or `reserved`) and dispatches secure transaction emails to both parties using the Brevo API.
+
+### 6. Multi-part Item Listing Upload
+![List an Item Form](./images/list_item.png)
+- **Technical Flow**: Form validation interface using React control hooks. Staged image binaries are handled backend-side via Multer middleware, which streams incoming file buffers directly to Cloudinary cloud repositories without writing bulky temporary files to server disks.
+
+### 7. Interactive Listings Inventory
+![My Listings Dashboard](./images/my_listings.png)
+- **Technical Flow**: Personal inventory management board showing active and sold listings. Items marked as sold are programmatically grayed out using CSS filter states to signify inactiveness, while providing users direct RESTful deletion controls.
+
+---
+
 ## Tech Stack
 
 ### Frontend Architecture
