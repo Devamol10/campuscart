@@ -224,5 +224,5 @@ Building CampusCart highlighted critical system engineering design choices and t
 
 ## Live Demo
 
-- **Frontend Client Web App**: [https://campuscart-client.netlify.app](https://campuscart-client.netlify.app) *(Update with your production client URL)*
-- **Backend API Endpoint**: [https://campuscart-api.onrender.com](https://campuscart-api.onrender.com) *(Update with your production server URL)*
+- **Live Web App**: [https://campuscart-eta.vercel.app/](https://campuscart-eta.vercel.app/)
+
