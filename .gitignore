@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# AI and Context
+PROJECT_CONTEXT.md
+
 # Environment variables
 .env
 server/.env
