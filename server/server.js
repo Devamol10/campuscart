@@ -78,9 +78,10 @@ const startServer = async () => {
       app.set("trust proxy", 1);
     }
 
+    const clientUrl = process.env.CLIENT_URL?.replace(/\/$/, "");
     const allowedOrigins = isProd
-      ? [process.env.CLIENT_URL]
-      : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5176", process.env.CLIENT_URL];
+      ? [clientUrl]
+      : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5176", clientUrl];
 
     const corsOptions = {
       origin: (origin, callback) => {
