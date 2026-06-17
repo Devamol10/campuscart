@@ -1,4 +1,8 @@
 import nodemailer from "nodemailer";
+import dns from "dns";
+
+// Force IPv4 resolution globally for this module to fix ENETUNREACH on IPv6 networks
+dns.setDefaultResultOrder("ipv4first");
 
 /**
  * Enterprise Email Service using Nodemailer (Gmail SMTP)
@@ -13,7 +17,9 @@ export const sendEmail = async ({ to, subject, html }) => {
       user: process.env.EMAIL_USER, // viralshortsking2323@gmail.com
       pass: process.env.EMAIL_PASS, // App Password
     },
-    family: 4, // Force IPv4 routing to fix ENETUNREACH error
+    tls: {
+      rejectUnauthorized: false
+    },
     connectionTimeout: 10000, // 10s timeout
     greetingTimeout: 10000,
   });
